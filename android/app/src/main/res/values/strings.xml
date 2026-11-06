@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Reactor Run</string>
+    <string name="title_activity_main">Reactor Run</string>
+    <string name="package_name">ro.biotic.reactorrun</string>
+    <string name="custom_url_scheme">ro.biotic.reactorrun</string>
+</resources>

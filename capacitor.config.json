@@ -1,0 +1,31 @@
+{
+  "appId": "ro.biotic.reactorrun",
+  "appName": "Reactor Run",
+  "webDir": "www",
+  "backgroundColor": "#07080a",
+  "android": {
+    "backgroundColor": "#07080a"
+  },
+  "ios": {
+    "backgroundColor": "#07080a",
+    "contentInset": "never",
+    "scrollEnabled": false
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchAutoHide": false,
+      "launchFadeOutDuration": 250,
+      "backgroundColor": "#07080a",
+      "androidScaleType": "CENTER_CROP",
+      "showSpinner": false,
+      "splashFullScreen": true,
+      "splashImmersive": true
+    },
+    "SystemBars": {
+      "insetsHandling": "css",
+      "style": "LIGHT",
+      "hidden": true,
+      "animation": "NONE"
+    }
+  }
+}
