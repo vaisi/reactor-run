@@ -1,13 +1,13 @@
 # Codemagic iOS workflow for the Reactor Run Capacitor app.
 # Builds a signed IPA and uploads it to TestFlight for the internal group.
-# The App Store Connect key name below must match Team integrations → Developer Portal.
+# The App Store Connect key name below matches Team integrations → Developer Portal.
 workflows:
   ios-capacitor:
     name: Reactor Run iOS
     max_build_duration: 60
     instance_type: mac_mini_m2
     integrations:
-      app_store_connect: Codemagic
+      app_store_connect: Reactor-Run-Key
     environment:
       ios_signing:
         distribution_type: app_store
