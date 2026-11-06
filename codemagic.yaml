@@ -1,0 +1,39 @@
+# Codemagic iOS workflow for the Reactor Run Capacitor app.
+# Installs dependencies, builds the offline web game, syncs it into ios/App, and archives a signed IPA.
+# Signing files are not in the repo: upload an Apple Distribution certificate and an App Store profile
+# for ro.biotic.reactorrun under Codemagic Signing identities before starting a build.
+workflows:
+  ios-capacitor:
+    name: Reactor Run iOS
+    max_build_duration: 60
+    instance_type: mac_mini_m2
+    environment:
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: ro.biotic.reactorrun
+      vars:
+        XCODE_PROJECT: ios/App/App.xcodeproj
+        XCODE_SCHEME: App
+      node: 22
+      xcode: latest
+    scripts:
+      - name: Install npm dependencies
+        script: npm ci
+      - name: Build the web game and sync it into the iOS project
+        script: |
+          npm run build
+          npx cap sync ios
+      - name: Set the iOS build number
+        script: |
+          cd "$CM_BUILD_DIR/ios/App"
+          agvtool new-version -all "$BUILD_NUMBER"
+      - name: Apply the iOS signing profile
+        script: xcode-project use-profiles --project "$CM_BUILD_DIR/$XCODE_PROJECT"
+      - name: Build the IPA
+        script: |
+          xcode-project build-ipa \
+            --project "$CM_BUILD_DIR/$XCODE_PROJECT" \
+            --scheme "$XCODE_SCHEME"
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
