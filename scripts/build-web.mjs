@@ -29,6 +29,16 @@ for (const rel of vendored) {
 }
 fs.copyFileSync(path.join(NM, 'three', 'LICENSE'), path.join(WWW, 'vendor', 'three', 'LICENSE'));
 
+/* 1b. The Firebase web SDK (worldwide scores) from the app bundle too; the game loads it only when a Firebase config is filled in */
+const fb = new Set();
+html = html.replace(/https:\/\/cdn\.jsdelivr\.net\/npm\/firebase@10\.14\.1\/([^"']+)/g, (m, rel) => { fb.add(rel); return 'vendor/firebase/' + rel; });
+for (const rel of fb) {
+  const from = path.join(NM, 'firebase', rel), to = path.join(WWW, 'vendor', 'firebase', rel);
+  if (!fs.existsSync(from)) fail('firebase@10.14.1 has no ' + rel + ' (run "npm install")');
+  fs.mkdirSync(path.dirname(to), { recursive: true }); fs.copyFileSync(from, to);
+}
+if (fb.size) for (const lic of ['LICENSE', 'LICENSE.md']) if (fs.existsSync(path.join(NM, 'firebase', lic))) fs.copyFileSync(path.join(NM, 'firebase', lic), path.join(WWW, 'vendor', 'firebase', lic));
+
 /* 2. Fonts from the app bundle (latin + latin-ext, woff2 only) */
 const FONTS = [['big-shoulders-display', [700, 900]], ['chakra-petch', [400, 600]]];
 let css = '';

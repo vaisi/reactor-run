@@ -1,0 +1,45 @@
+rules_version = '2';
+// Reactor Run worldwide scores.
+// scores/{uid}: one entry per player (their best run), written only by that player, only ever going up.
+// reports/{id}: players flag a name; only the developer reads these (in the Firebase console).
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function okName(n) { return n is string && n.matches('^[A-Z0-9 _-]{3,12}$'); }
+    function okLevel(v) { return v is int && v >= 0 && v <= 5; }
+    function okPart(v) { return v is string && v.size() <= 12; }
+    function okShip(s) {
+      return s is map
+        && s.keys().hasAll(['k', 'n', 'c'])
+        && s.keys().hasOnly(['k', 'n', 'c', 'f', 'p', 't', 'g', 's', 'h'])
+        && s.k is string && s.k.size() <= 24
+        && s.n is string && s.n.size() <= 12
+        && s.c is bool
+        && (!s.c || (s.f in ['needle', 'twin', 'heavy'] && okPart(s.p) && okPart(s.t) && okPart(s.g) && okLevel(s.s) && okLevel(s.h)));
+    }
+    function okScore(d) {
+      return d.keys().hasOnly(['name', 'score', 'lv', 'ship', 'plat', 'at', 'v'])
+        && okName(d.name)
+        && d.score is int && d.score > 0 && d.score <= 2000000
+        && d.lv is int && d.lv >= 1 && d.lv <= 9
+        && okShip(d.ship)
+        && d.plat in ['ios', 'android', 'web', 'steam']
+        && d.at == request.time
+        && d.v == 1;
+    }
+    match /scores/{uid} {
+      allow read: if true;
+      allow create: if request.auth != null && request.auth.uid == uid && okScore(request.resource.data);
+      allow update: if request.auth != null && request.auth.uid == uid && okScore(request.resource.data)
+        && request.resource.data.score >= resource.data.score;
+      allow delete: if false;
+    }
+    match /reports/{id} {
+      allow create: if request.auth != null
+        && request.resource.data.keys().hasOnly(['entry', 'by', 'at'])
+        && request.resource.data.entry is string && request.resource.data.entry.size() <= 128
+        && request.resource.data.by == request.auth.uid
+        && request.resource.data.at == request.time;
+      allow read, update, delete: if false;
+    }
+  }
+}

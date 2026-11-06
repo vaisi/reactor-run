@@ -1,6 +1,6 @@
 # Reactor Run for iPhone and Android
 
-This folder holds the app version of Reactor Run. It is the same game as the web version, wrapped in a native app shell (Capacitor 8). The game runs fully offline: Three.js and both fonts are packed inside the app. The app plays in portrait only.
+This folder holds the app version of Reactor Run. It is the same game as the web version, wrapped in a native app shell (Capacitor 8). The game runs fully offline: Three.js and both fonts are packed inside the app. The hangar, builder and every menu stay upright; during a run (including its pause and result screens) the screen turns with the phone, so the game can be flown sideways. Back in the hangar it turns upright again. This uses `@capacitor/screen-orientation`; the phone's own rotation lock still applies.
 
 | | |
 |---|---|
@@ -70,11 +70,57 @@ Apple's build tools only run on macOS. Capacitor 8 needs **Xcode 26 or newer**.
 
 To change the icon or launch screen, replace the images in `assets/` (same sizes) and run `npm run assets`.
 
+## In-app purchases (worlds and ship builder)
+
+The game sells two kinds of things through the `@capgo/native-purchases` plugin (StoreKit on iPhone, Google Play Billing on Android): opening every world at once, and the paid parts in the ship builder. Create these six products in **both** stores before testing, with exactly these IDs:
+
+| Product ID | What it unlocks | Type | Price |
+|---|---|---|---|
+| `ro.biotic.reactorrun.allworlds` | All nine worlds at once, for every ship | **Non-consumable** | €3.99 |
+| `ro.biotic.reactorrun.level4` | Speed or handling level 4, for one ship | Consumable | €1.99 |
+| `ro.biotic.reactorrun.level5` | Speed or handling level 5, for one ship | Consumable | €3.99 |
+| `ro.biotic.reactorrun.paint` | One special paint (Silver, Gold, Titanium black, Carbon fibre, Gold carbon, Rosso, Opal, Diamond), for one ship | Consumable | €1.99 |
+| `ro.biotic.reactorrun.trim` | One special trim (the same eight finishes), for one ship | Consumable | €0.99 |
+| `ro.biotic.reactorrun.glow` | One special engine glow (Plasma, Toxic), for one ship | Consumable | €0.99 |
+
+**Worlds.** A new player starts with Shaft 7 only. Each world opens when they fly through the one before it in a run (test flights from the builder don't count), and every world stays in the hangar picker so the title screen can still fly them through a locked one. Picking a locked world turns Launch into *Locked*, which opens a sheet with how to open it, **Unlock all** and **Restore purchase**. The all-worlds unlock is a non-consumable, so the stores keep it for the player's account: the game checks it at every start (so a reinstall gets it back on its own) and the Restore button asks the store again. Apple requires that Restore button for non-consumables. Players who installed before the lock keep every world their runs had already reached.
+
+The builder parts are consumables because each unlock belongs to the ship it was bought for, so the same unlock can be bought again for another ship. The game shows each store's own local price once the products load. A cart with several unlocks is bought one product at a time, so the player confirms once per item. Anything bought before a cancel is kept.
+
+- **App Store Connect:** *Monetization > In-App Purchases*, add `allworlds` as *Non-Consumable* and the other five as *Consumable*. In Xcode, add the *In-App Purchase* capability to the App target (*Signing & Capabilities*). Test with a Sandbox tester account (*Users and Access > Sandbox*).
+- **Google Play Console:** upload a build to a testing track first (Play only lists products for an app that has a build), then *Monetize > Products > In-app products* (Play has one kind of in-app product; the game tells Play which ones to consume, and never consumes `allworlds`). Add your Google account under *Settings > License testing* to buy without being charged.
+- **Where unlocks live:** builds and their unlocks are saved on the phone, like best scores. Consumables can't be restored by the stores, so deleting the app loses them. A cloud save (Game Center / Google Play Games saved games) is the fix before launch.
+- **App ID:** the product IDs start with the app ID. If you change the app ID, change the `SKU` list in the game file to match.
+- **On the web** there is no store, so every speed and handling level and every finish is free to use and keep there. Worlds still open one at a time on the web; the Unlock all sheet there says it is bought in the app.
+
+## Worldwide scores (Firebase)
+
+The Scores button has a **Worldwide** tab: one table for every player on iPhone, Android and the web, best run each, and every entry carries the ship that set it, so anyone can tap a score and look at that ship. It runs on Firebase (Firestore plus anonymous sign-in), which is free at this size. Until you paste a Firebase config into the game, the tab stays hidden and the Scores sheet shows this phone's table only.
+
+1. Create a project at console.firebase.google.com (the free Spark plan is enough to start).
+2. *Build > Authentication > Sign-in method*: turn on **Anonymous**.
+3. *Build > Firestore Database*: create the database in production mode, in a European location (for example `eur3`).
+4. *Firestore > Rules*: paste the contents of `firebase/firestore.rules` and publish. (Or, with the Firebase CLI: `npx firebase-tools deploy --only firestore:rules`.) The rules allow one entry per player, only ever going up, with every field checked.
+5. *Project settings > Your apps*: add a **Web app** and copy its `firebaseConfig` object. Paste it into `game/reactor-run.html`, replacing `const FIREBASE_CONFIG = null;` (search for it), then run `npm run sync`. These values are not secret; the rules are what protect the data.
+6. **Web version:** `npx firebase-tools deploy --only hosting` publishes `www/` (the same game, with the worldwide table) at `https://<your-project>.web.app`. Web players can use the table there; the claude.ai preview page may not be allowed to reach Firebase.
+
+**Names and reports.** Players get a pilot name like `PILOT-4821` and can change it in the Scores sheet (3 to 12 letters or digits, with a basic bad-word filter). Anyone can tap **Report this name** on another player's entry: that hides it for them and adds a document to the `reports` collection. Check it now and then in the Firestore console and delete any entry under `scores` that should go. Apple and Google both expect this kind of reporting and removal for names other players can see.
+
+**Cheating.** The rules reject anything malformed and cap scores, but a determined player could still post a fake score. Before launch, turn on **App Check** (Play Integrity on Android, App Attest on iPhone, reCAPTCHA on the web) so only the real game can write to the table.
+
+**Usage.** Each time someone opens the Worldwide tab the game reads up to 50 entries (cached for a minute). The free plan allows 50,000 reads a day, which is about a thousand table views; past that, the pay-as-you-go plan costs a few cents per extra 100,000 reads.
+
+**Privacy.** With the table switched on, the app sends a pilot name, scores and the ship behind each score, linked to an anonymous player ID. Update both stores' privacy answers and the privacy policy before releasing that version.
+
+## Sharing ship cards
+
+The **Share** buttons (hangar, result screen, ship viewer) make a 1080 × 1350 picture of the ship with its name, finishes, stats and score, then open the phone's share sheet through `@capacitor/share` and `@capacitor/filesystem`. On iPhone the share sheet's *Save Image* needs the Photos permission text, which is already in `Info.plist` (`NSPhotoLibraryAddUsageDescription`). Once the web version has a public address, put it in `SHARE_URL` in the game file so shares carry the link.
+
 ## Before the first upload
 
 - **App ID:** `ro.biotic.reactorrun` can't be changed once the app is published on either store. If it should live under a different name (a personal domain, say), change it before the first upload. It appears in `capacitor.config.json`, `android/app/build.gradle`, the Java package folder under `android/app/src/main/java/` and the Xcode bundle identifier.
-- **Store listing:** both stores need screenshots, a description, an age rating questionnaire and a privacy policy link. Apple asks for one even when an app collects no data, and this game collects none: best scores stay on the phone.
-- **Tablets:** iOS is iPhone-only for now, so no iPad screenshots are needed. On large Android tablets and foldables, Android 16 may ignore the portrait lock; the game still works in landscape.
+- **Store listing:** both stores need screenshots, a description, an age rating questionnaire and a privacy policy link. Apple asks for one even when an app collects no data, and this game collects none: best scores, ship builds and unlocks stay on the phone, and payments are handled by Apple and Google.
+- **Tablets:** iOS is iPhone-only for now, so no iPad screenshots are needed. On large Android tablets and foldables, Android 16 may ignore the upright lock in the menus; the menus also have a sideways layout, so they still work.
 
 ## Licences
 
