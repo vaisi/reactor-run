@@ -57,6 +57,10 @@ Apple's build tools only run on macOS. Capacitor 8 needs **Xcode 26 or newer**.
 2. Run `npm run ios`. Xcode opens the project and fetches the Swift packages on the first open.
 3. Select the **App** target, then *Signing & Capabilities*, and choose your team (the Apple Developer Program costs $99/year). Plug in an iPhone and press ▶ to try it.
 4. **Publish:** in App Store Connect create an app with bundle ID `ro.biotic.reactorrun`. In Xcode: *Product → Archive → Distribute App → App Store Connect*. Test it with TestFlight, then submit it for review.
+   - TestFlight: people on your App Store Connect team (up to 100) can install a build as soon as it has processed, without review. Testers outside the team (up to 10,000, by email or a public link) need Apple's beta review once per version.
+   - Each upload needs a new *Build* number (Xcode, App target, *General*).
+   - The encryption question is already answered in `Info.plist` (no non-exempt encryption), and `App/PrivacyInfo.xcprivacy` holds the privacy declaration Apple requires for the Filesystem plugin.
+   - Purchases in TestFlight are free test purchases, but they only work once the products exist in App Store Connect and the Paid Apps agreement (with banking and tax) is active.
 
 **Without a Mac:** a cloud build service (for example Codemagic, Ionic Appflow or a GitHub Actions macOS runner) can build and upload the iOS app from this folder. It needs an App Store Connect API key from your Apple Developer account.
 
