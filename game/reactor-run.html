@@ -405,7 +405,7 @@ body.building .ui-btns{display:none}
 .bd-sec-h .lbl{text-shadow:none}
 .bd-sec-h span:last-child{font-size:11px;letter-spacing:.06em;color:var(--ink);text-align:right}
 .bd-sec-h em{font-style:normal;color:var(--amber)}
-.frames{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.frames{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
 .fr{all:unset;box-sizing:border-box;cursor:pointer;display:grid;gap:5px;padding:10px 10px 9px;background:rgba(7,8,10,.6);border:1px solid rgba(143,150,163,.25);min-width:0}
 .fr b{font-family:var(--display);font-weight:900;font-size:21px;line-height:.9;text-transform:uppercase}
 .fr small{font-size:10px;letter-spacing:.08em;color:var(--steel)}
@@ -1178,12 +1178,11 @@ function buildKestrel() {
   return M;
 }
 
-/* Bulwark: an armoured breacher: ram prow with hazard bumper, plated deck, quad-nozzle pods, weapon racks */
+/* Bulwark: an armoured breacher: ram prow with mandible blades, plated deck, quad-nozzle pods, weapon racks */
 function buildBulwark() {
   const M = newModel();
   mesh(M, loft([sec(-3.75, 0.48, 0.17, 0.17, 0.9), sec(-3.05, 0.95, 0.39, 0.33, 0.9), sec(-1.95, 1.25, 0.6, 0.46, 0.9), sec(-0.4, 1.35, 0.74, 0.52, 0.9), sec(1.2, 1.3, 0.7, 0.52, 0.9), sec(2.5, 1.15, 0.58, 0.46, 0.9), sec(2.9, 1.0, 0.5, 0.42, 0.9)], [5, 6, 7]), [bArmor, kDark]);
-  /* ram: striped bumper, twin mandible blades */
-  mesh(M, new THREE.BoxGeometry(1.05, 0.34, 0.28), bHaz, 0, 0, -3.78);
+  /* ram: twin mandible blades */
   for (const s of [-1, 1]) { const bl = mesh(M, new THREE.ConeGeometry(0.22, 1.5, 4), kDark, s * 0.78, -0.05, -3.35, -Math.PI / 2, 0, 0); bl.scale.set(1, 1, 0.55); }
   /* visor slit and its brow */
   mesh(M, new THREE.BoxGeometry(1.02, 0.13, 0.42), canopyMat, 0, 0.55, -2.15, -0.42, 0, 0);
@@ -1230,12 +1229,13 @@ const models = SHIPS.map(def => {
   def.topMs = Math.round(170 * def.speed * 4);
   return M;
 });
-/* ---------- custom ships: four frames (the three stock hulls and the Stealth) you can repaint, and speed / handling from 0 to 5 ---------- */
+/* ---------- custom ships: five frames (the three stock hulls, the Stealth and the Mach) you can repaint, and speed / handling from 0 to 5 ---------- */
 const FRAMES = [
   { id: 'needle', label: 'Needle', stock: 0, size: 1 },
   { id: 'twin', label: 'Twin', stock: 1, size: 3 },
   { id: 'heavy', label: 'Heavy', stock: 2, size: 5 },
-  { id: 'stealth', label: 'Stealth', stock: 1, size: 3, build: () => buildStealth() } /* its own faceted hull, flying like the Twin */
+  { id: 'stealth', label: 'Stealth', stock: 1, size: 3, build: () => buildStealth() }, /* its own faceted hull, flying like the Twin */
+  { id: 'mach', label: 'Mach', stock: 1, size: 3, build: () => buildMach() } /* its own long chined hull, flying like the Twin */
 ];
 const SPECIALS = [
   { id: 'silver', label: 'Silver', short: 'Silver', tint: '#c9ced6', special: true, css: 'linear-gradient(135deg,#ffffff 0%,#a7adb5 40%,#f2f4f7 56%,#737a84 100%)' },
@@ -1426,6 +1426,40 @@ function buildStealth() {
     mesh(M, new THREE.BoxGeometry(0.7, 0.13, 0.42), nozzleMat, s * 0.42, 0.11, 1.92);
     mesh(M, new THREE.BoxGeometry(0.74, 0.03, 0.46), kAccent, s * 0.42, 0.185, 1.92);
     addSlot(M, s * 0.42, 0.11, 2.15, 0.6, 0.07, 1.05);
+  }
+  return M;
+}
+
+
+/* ---------- Mach frame (custom ships only) ---------- */
+/* Mach: a long-range speed jet: a long chined fuselage and needle nose, a delta wing, slim engine nacelles out on the wings with inlet spikes, twin tails leaning in */
+function buildMach() {
+  const M = newModel();
+  /* the long fuselage: a round spine with flat chines flaring out along its sides */
+  const cs = (z, w, top, bot) => ({ z, pts: [[w, 0], [w * 0.45, top * 0.32], [w * 0.24, top * 0.84], [w * 0.1, top], [-w * 0.1, top], [-w * 0.24, top * 0.84], [-w * 0.45, top * 0.32], [-w, 0], [-w * 0.28, -bot], [w * 0.28, -bot]] });
+  mesh(M, loft([cs(-6.1, 0.01, 0.01, 0.01), cs(-5.4, 0.09, 0.07, 0.05), cs(-4.3, 0.34, 0.18, 0.08), cs(-2.95, 0.62, 0.27, 0.11), cs(-1.25, 0.82, 0.31, 0.13), cs(-0.25, 0.9, 0.31, 0.14), cs(0.85, 0.82, 0.29, 0.14), cs(1.85, 0.62, 0.26, 0.13), cs(2.65, 0.4, 0.21, 0.11), cs(3.05, 0.26, 0.16, 0.09)], [7, 8, 9]), [kPaint, kDark]);
+  /* a sensor boom at the nose tip */
+  mesh(M, new THREE.CylinderGeometry(0.012, 0.02, 0.5, 6), kDark, 0, 0.0, -6.32, Math.PI / 2, 0, 0);
+  /* two small tandem canopies */
+  for (const [z, l] of [[-3.2, 0.42], [-2.6, 0.36]]) { const c = mesh(M, new THREE.SphereGeometry(1, 16, 10), glassMat, 0, 0.27, z); c.scale.set(0.12, 0.09, l); }
+  for (const s of [-1, 1]) {
+    /* delta wing from mid-body to the tail, its tip just outboard of the nacelle */
+    mesh(M, plan(mirror([[0.5, -0.95], [2.85, 2.05], [2.82, 2.45], [0.45, 2.75]], s), 0.07, 0.02), kWing, 0, -0.02, 0);
+    /* trim-coloured walkway outline on the inner wing */
+    const ln = (a, b) => { const dx = b[0] - a[0], dz = b[1] - a[1], L = Math.hypot(dx, dz); mesh(M, new THREE.BoxGeometry(0.022, 0.012, L), kAccent, s * (a[0] + b[0]) / 2, 0.05, (a[1] + b[1]) / 2, 0, s * Math.atan2(dx, dz), 0); };
+    ln([0.95, 0.35], [1.2, 0.55]); ln([1.2, 0.55], [1.2, 2.45]); ln([1.2, 2.45], [0.78, 2.5]); ln([0.78, 2.5], [0.95, 0.35]);
+    /* engine nacelle on the wing: inlet spike in front, round body, nozzle with the flame */
+    const nx = s * 1.58, ny = 0.04;
+    mesh(M, lathe([[0.0, -0.55], [0.06, -0.38], [0.11, -0.15], [0.14, 0.02]], 14), kDark, nx, ny, 0);
+    mesh(M, lathe([[0.18, -0.05], [0.23, 0.12], [0.26, 0.7], [0.26, 2.0], [0.23, 2.7]], 16), kPaint, nx, ny, 0);
+    mesh(M, new THREE.CircleGeometry(0.18, 16), intakeMat, nx, ny, -0.02, 0, Math.PI, 0);
+    mesh(M, lathe([[0.23, 2.68], [0.21, 2.9], [0.18, 2.98], [0.14, 2.9]], 16), nozzleMat, nx, ny, 0);
+    mesh(M, new THREE.TorusGeometry(0.24, 0.025, 6, 18), kAccent, nx, ny, 2.69);
+    addEngine(M, nx, ny, 2.96, 0.72, 1.05, 0.18);
+    /* tail fin on top of the nacelle, leaning in */
+    mesh(M, prof([[1.55, 0], [2.3, 1.0], [2.75, 1.0], [2.85, 0]], 0.06, 0.015), kWing, nx, ny + 0.2, 0, 0, 0, s * 0.22);
+    mesh(M, prof([[2.17, 0.82], [2.3, 1.0], [2.75, 1.0], [2.77, 0.82]], 0.066, 0), kAccent, nx, ny + 0.2, 0, 0, 0, s * 0.22);
+    addTip(M, s < 0 ? shipAmber : glowC, s * 2.84, 0.0, 2.3, 0.06);
   }
   return M;
 }

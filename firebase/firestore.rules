@@ -14,7 +14,7 @@ service cloud.firestore {
         && s.k is string && s.k.size() <= 24
         && s.n is string && s.n.size() <= 12
         && s.c is bool
-        && (!s.c || (s.f in ['needle', 'twin', 'heavy', 'stealth'] && okPart(s.p) && okPart(s.t) && okPart(s.g) && okLevel(s.s) && okLevel(s.h)));
+        && (!s.c || (s.f in ['needle', 'twin', 'heavy', 'stealth', 'mach'] && okPart(s.p) && okPart(s.t) && okPart(s.g) && okLevel(s.s) && okLevel(s.h)));
     }
     function okScore(d) {
       return d.keys().hasOnly(['name', 'score', 'lv', 'ship', 'plat', 'at', 'v'])
