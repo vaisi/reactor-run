@@ -405,7 +405,7 @@ body.building .ui-btns{display:none}
 .bd-sec-h .lbl{text-shadow:none}
 .bd-sec-h span:last-child{font-size:11px;letter-spacing:.06em;color:var(--ink);text-align:right}
 .bd-sec-h em{font-style:normal;color:var(--amber)}
-.frames{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.frames{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
 .fr{all:unset;box-sizing:border-box;cursor:pointer;display:grid;gap:5px;padding:10px 10px 9px;background:rgba(7,8,10,.6);border:1px solid rgba(143,150,163,.25);min-width:0}
 .fr b{font-family:var(--display);font-weight:900;font-size:21px;line-height:.9;text-transform:uppercase}
 .fr small{font-size:10px;letter-spacing:.08em;color:var(--steel)}
@@ -431,6 +431,10 @@ body.building .ui-btns{display:none}
 .sw.glow i{background:radial-gradient(circle,#fff 0%,var(--c) 52%,transparent 74%)}
 .sw[aria-pressed="true"]{border-color:var(--amber)}
 .lvls{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:5px}
+.lvls.b4{grid-template-columns:repeat(4,minmax(0,1fr))}
+button.link{all:unset;cursor:pointer;color:var(--amber);text-decoration:underline;text-underline-offset:2px}
+button.link:focus-visible{outline:2px solid var(--ion);outline-offset:2px}
+button.link:disabled{color:var(--steel);cursor:default}
 .lv{all:unset;box-sizing:border-box;cursor:pointer;display:grid;gap:3px;justify-items:center;padding:8px 2px 7px;background:#0f1116;border:1px solid rgba(143,150,163,.22);color:#cfd4da;min-width:0}
 .lv b{font-family:var(--display);font-weight:900;font-size:22px;line-height:.9}
 .lv small{font-size:9px;letter-spacing:.04em;white-space:nowrap}
@@ -749,9 +753,10 @@ body.building .ui-btns{display:none}
     <div class="bd-body" id="bdPerf" role="tabpanel" aria-labelledby="tabPerf" hidden>
       <div class="bd-sec"><div class="bd-sec-h"><span class="lbl">Speed</span><span id="spLbl"></span></div><div class="lvls" id="bdSpeed"></div><div class="bd-read" id="spRead"></div></div>
       <div class="bd-sec"><div class="bd-sec-h"><span class="lbl">Handling</span><span id="hdLbl"></span></div><div class="lvls" id="bdHand"></div><div class="bd-read" id="hdRead"></div></div>
+      <div class="bd-sec"><div class="bd-sec-h"><span class="lbl">Boost duration</span><span id="bxLbl"></span></div><div class="lvls b4" id="bdBoost"></div><div class="bd-read" id="bxRead"></div></div>
       <div class="bd-sec"><div class="bd-sec-h"><span class="lbl">Size</span><span id="szLbl"></span></div><div class="bd-read" id="szRead"></div></div>
       <div class="bd-sec"><span class="lbl">Compared with the stock ships</span><div class="cmp" id="bdCmp"></div></div>
-      <p class="bd-note" id="bdNote">Levels 0 to 3 are free. Levels 4 and 5 are one-time unlocks for this ship only. You can fly a 60-second test before you buy. Custom ships go on the same high-score table as the stock ships, marked as custom.</p>
+      <p class="bd-note" id="bdNote">Levels 0 to 3 are free. Levels 4 and 5 and the boost upgrades are one-time unlocks for this ship only. A special finish is bought once and works on all your ships. You can fly a 60-second test before you buy. Custom ships go on the same high-score table as the stock ships, marked as custom.</p>
     </div>
     <div class="bd-foot"><div class="bd-total" id="bdTotal"><span class="lbl">Total</span><b id="bdTotalV">Free</b></div><button class="go" id="bdCta" type="button">Save</button></div>
   </div>
@@ -780,7 +785,7 @@ body.building .ui-btns{display:none}
     <div class="lines" id="ulLines"></div>
     <div id="ulPay"><button class="go" id="ulBuy" type="button">Buy</button></div>
     <button class="ghost" id="ulTest" type="button">Test flight first &middot; 60 s, free</button>
-    <p class="fine">Unlocks belong to this ship only and are kept on this device.</p>
+    <p class="fine">Levels and boost upgrades belong to this ship. Special finishes are yours for every ship.</p>
   </div>
 </div>
 
@@ -799,7 +804,7 @@ body.building .ui-btns{display:none}
   <div class="sheet">
     <div class="sheet-h"><div><span class="lbl">Custom ships</span><h3 id="gTitle">Garage</h3></div><button class="bd-btn" id="gClose" type="button" aria-label="Close">&times;</button></div>
     <div id="gShips" class="g-list"></div>
-    <p class="fine" id="gFine">Up to 6 builds. Each ship keeps its own unlocks.</p>
+    <p class="fine" id="gFine">Up to 6 builds. Levels and boost upgrades stay with their ship; special finishes work on all of them.</p>
   </div>
 </div>
 
@@ -1225,11 +1230,12 @@ const models = SHIPS.map(def => {
   def.topMs = Math.round(170 * def.speed * 4);
   return M;
 });
-/* ---------- custom ships: three frames (the stock hulls) you can repaint, and speed / handling from 0 to 5 ---------- */
+/* ---------- custom ships: four frames (the three stock hulls and the Stealth) you can repaint, and speed / handling from 0 to 5 ---------- */
 const FRAMES = [
   { id: 'needle', label: 'Needle', stock: 0, size: 1 },
   { id: 'twin', label: 'Twin', stock: 1, size: 3 },
-  { id: 'heavy', label: 'Heavy', stock: 2, size: 5 }
+  { id: 'heavy', label: 'Heavy', stock: 2, size: 5 },
+  { id: 'stealth', label: 'Stealth', stock: 1, size: 3, build: () => buildStealth() } /* its own faceted hull, flying like the Twin */
 ];
 const SPECIALS = [
   { id: 'silver', label: 'Silver', short: 'Silver', tint: '#c9ced6', special: true, css: 'linear-gradient(135deg,#ffffff 0%,#a7adb5 40%,#f2f4f7 56%,#737a84 100%)' },
@@ -1254,7 +1260,9 @@ const GLOWS = [{ id: 'ion', label: 'Ion', hex: '#5fe2ff' }, { id: 'amber', label
 /* speed level -> cruise multiplier (Kestrel and Wasp sit at 3, Bulwark at 4); handling level -> steer, lateral cap, roll time, roll recharge (Bulwark 1, Kestrel 3, Wasp 5) */
 const SPD = [0.7, 0.8, 0.9, 1, 1.15, 1.3];
 const HND = [[4.5, 30, 0.8, 2.1], [6.5, 46, 0.72, 1.8], [8.5, 68, 0.63, 1.5], [11, 90, 0.55, 1.25], [13.5, 110, 0.48, 1.05], [16, 130, 0.42, 0.85]];
-const PRICE = { lv: [0, 0, 0, 0, 1.99, 3.99], paint: 1.99, trim: 0.99, glow: 0.99, worlds: 3.99, free: 3, cur: '€' };
+/* boost duration upgrades (per ship): seconds added to a full boost meter, which lasts BOOST_BASE seconds as standard */
+const BOOSTX = [0, 2, 5, 10], BOOST_BASE = 1 / 0.42;
+const PRICE = { lv: [0, 0, 0, 0, 1.99, 3.99], boost: [0, 1, 2, 5], paint: 1.99, trim: 0.99, glow: 0.99, worlds: 3.99, free: 3, cur: '€' };
 /* on the web every level and finish is free to use and keep; the iOS / Android apps sell levels 4-5 and the special finishes */
 const WEB_FREE = !(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
 if (WEB_FREE) PRICE.free = 5;
@@ -1364,9 +1372,67 @@ function boxUV(geo, k) {
   geo.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
 }
 const ROLE = new Map([[wGraph, 'p'], [wWing, 'p2'], [wAmber, 'trim'], [kPaint, 'p'], [kWing, 'p2'], [kAccent, 'trim'], [bArmor, 'p'], [bPlate, 'p2'], [bYellow, 'trim'], [glowC, 'ring'], [flameMat, 'flame'], [canopyMat, 'glass'], [glassMat, 'glass']]);
+
+/* ---------- Stealth frame (custom ships only) ---------- */
+/* Stealth: a faceted arrowhead: low pyramid body, one-piece swept wing with a sawtooth trailing edge, canted V-tail, slot exhausts */
+function facets(tris, dir) {
+  const A = [];
+  for (const [a, b, c] of tris) {
+    const ux = b[0] - a[0], uy = b[1] - a[1], uz = b[2] - a[2], vx = c[0] - a[0], vy = c[1] - a[1], vz = c[2] - a[2];
+    const nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx;
+    if (nx * dir[0] + ny * dir[1] + nz * dir[2] >= 0) A.push(...a, ...b, ...c); else A.push(...a, ...c, ...b);
+  }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(A, 3)); g.computeVertexNormals(); return g;
+}
+function twoTone(top, bot) {
+  const g = new THREE.BufferGeometry(), a = top.attributes.position.array, b = bot.attributes.position.array, all = new Float32Array(a.length + b.length);
+  all.set(a); all.set(b, a.length); g.setAttribute('position', new THREE.BufferAttribute(all, 3));
+  g.addGroup(0, a.length / 3, 0); g.addGroup(a.length / 3, b.length / 3, 1); g.computeVertexNormals(); return g;
+}
+function addSlot(M, x, y, z, w, h, len) {
+  M.add(part(new THREE.BoxGeometry(w, h, 0.05), glowC, x, y, z - 0.03));
+  const f = part(flameGeo, flameMat, x, y, z); f.scale.set(w * 1.45, h * 2.6, 1); f.userData.len = len; M.add(f);
+  const c = part(flameGeo, flameCore, x, y, z); c.scale.set(w * 0.7, h * 1.2, 0.5); c.userData.len = len; M.add(c);
+  M.userData.flames.push(f, c); M.userData.engines.push(new THREE.Vector3(x, y, z + 0.15));
+}
+function buildStealth() {
+  const M = newModel();
+  /* the body: a low faceted pyramid, sharp chines, flat belly */
+  const fs = (z, w, top, bot) => ({ z, pts: [[w, 0], [w * 0.52, top * 0.72], [w * 0.15, top], [-w * 0.15, top], [-w * 0.52, top * 0.72], [-w, 0], [-w * 0.6, -bot], [w * 0.6, -bot]] });
+  mesh(M, loft([fs(-3.6, 0.02, 0.01, 0.01), fs(-2.7, 0.36, 0.17, 0.05), fs(-1.6, 0.7, 0.4, 0.09), fs(-0.45, 0.95, 0.54, 0.12), fs(0.75, 0.98, 0.5, 0.13), fs(1.65, 0.8, 0.33, 0.11), fs(2.1, 0.62, 0.2, 0.09)], [5, 6, 7]), [kPaint, kDark]);
+  /* faceted canopy: flat glass panes on a sharp ridge */
+  const gs = (z, y0, w, h) => ({ z, pts: [[w, y0], [w * 0.3, y0 + h], [-w * 0.3, y0 + h], [-w, y0], [-w * 0.5, y0 - 0.06], [w * 0.5, y0 - 0.06]] });
+  mesh(M, loft([gs(-2.4, 0.2, 0.03, 0.01), gs(-1.9, 0.29, 0.27, 0.15), gs(-1.3, 0.39, 0.34, 0.19), gs(-0.8, 0.47, 0.24, 0.1)], []), glassMat);
+  for (const s of [-1, 1]) {
+    /* one-piece swept wing from the nose to the tip, a raised crease across it, sawtooth trailing edge */
+    const R1 = [s * 0.1, 0.03, -3.3], T = [s * 2.85, 0, 1.0], T2 = [s * 2.6, 0, 1.55], K = [s * 1.45, 0.03, 1.12], E = [s * 0.9, 0.05, 2.1], R2 = [s * 0.35, 0.1, 2.05];
+    const C = [s * 1.25, 0.26, 0.2], Cb = [s * 1.25, -0.06, 0.2];
+    const ring = [R1, T, T2, K, E, R2];
+    const top = facets(ring.map((p, i) => [C, p, ring[(i + 1) % ring.length]]), [0, 1, 0]);
+    const bot = facets(ring.map((p, i) => [Cb, p, ring[(i + 1) % ring.length]]), [0, -1, 0]);
+    mesh(M, twoTone(top, bot), [kWing, kDark]);
+    /* trim: a thin leading-edge band and a chevron on the wing crease */
+    mesh(M, facets([[[s * 0.32, 0.075, -2.75], [s * 2.6, 0.035, 0.78], [s * 2.42, 0.06, 0.82]], [[s * 0.32, 0.075, -2.75], [s * 2.42, 0.06, 0.82], [s * 0.42, 0.095, -2.45]]], [0, 1, 0]), kAccent);
+    mesh(M, facets([[[s * 1.62, 0.15, 0.62], [s * 2.2, 0.09, 1.0], [s * 2.08, 0.1, 1.08]], [[s * 1.62, 0.15, 0.62], [s * 2.08, 0.1, 1.08], [s * 1.52, 0.16, 0.74]]], [0, 1, 0]), kAccent);
+    /* side intakes above the wing root, dark with a grille */
+    mesh(M, facets([[[s * 0.86, 0.28, -0.95], [s * 0.93, 0.12, -0.95], [s * 0.96, 0.12, -0.35]], [[s * 0.86, 0.28, -0.95], [s * 0.96, 0.12, -0.35], [s * 0.9, 0.3, -0.35]]], [s, 0.4, 0]), intakeMat);
+    for (let k = 0; k < 4; k++) mesh(M, new THREE.BoxGeometry(0.02, 0.17, 0.02), kDark, s * 0.92, 0.21, -0.85 + k * 0.15, 0, 0, s * -0.4);
+    /* canted V-tail with trim tips */
+    mesh(M, prof([[1.0, 0], [1.78, 1.18], [2.22, 1.18], [2.12, 0]], 0.06, 0.015), kWing, s * 0.52, 0.22, 0, 0, 0, s * -0.68);
+    mesh(M, prof([[1.66, 1.0], [1.78, 1.18], [2.22, 1.18], [2.2, 1.0]], 0.066, 0), kAccent, s * 0.52, 0.22, 0, 0, 0, s * -0.68);
+    /* wingtip nav lights */
+    addTip(M, s < 0 ? shipAmber : glowC, s * 2.8, 0.01, 1.08, 0.07);
+    /* flat slot exhausts behind the body, a dark shroud and a glowing slit */
+    mesh(M, new THREE.BoxGeometry(0.7, 0.13, 0.42), nozzleMat, s * 0.42, 0.11, 1.92);
+    mesh(M, new THREE.BoxGeometry(0.74, 0.03, 0.46), kAccent, s * 0.42, 0.185, 1.92);
+    addSlot(M, s * 0.42, 0.11, 2.15, 0.6, 0.07, 1.05);
+  }
+  return M;
+}
+
 const customModels = {};
 FRAMES.forEach(f => {
-  const st = SHIPS[f.stock], M = st.build();
+  const st = SHIPS[f.stock], M = (f.build || st.build)();
   M.traverse(o => {
     if (!o.isMesh) return;
     const list = Array.isArray(o.material) ? o.material : [o.material], roles = list.map(m => ROLE.get(m) || null);
@@ -1411,18 +1477,31 @@ function animateCustom(t, boost, show) {
 
 /* builds live on this device; each purchase is recorded on the build it was bought for */
 const BUILD_KEY = 'reactorRunBuilds', TABLE_KEY = 'reactorRunScores', MAX_BUILDS = 6, NAMES = ['NOVA', 'VEGA', 'ORCA', 'LYNX', 'RAZOR', 'HALO', 'EMBER', 'ZEPHYR'];
-const lvOk = v => Number.isInteger(v) && v >= 0 && v <= 5, strs = a => Array.isArray(a) ? a.filter(x => typeof x === 'string') : [];
+const lvOk = v => Number.isInteger(v) && v >= 0 && v <= 5, bxOk = v => Number.isInteger(v) && v >= 0 && v < BOOSTX.length, strs = a => Array.isArray(a) ? a.filter(x => typeof x === 'string') : [];
 function cleanBuild(b) {
   if (!b || typeof b.id !== 'string') return null;
   const o = b.owned || {};
   return { id: b.id, name: String(b.name || 'CUSTOM').toUpperCase().replace(/[^A-Z0-9 \-]/g, '').slice(0, 10) || 'CUSTOM',
     frame: byId(FRAMES, b.frame).id, paint: byId(PAINTS, b.paint).id, trim: byId(TRIMS, b.trim).id, glow: byId(GLOWS, b.glow).id,
-    speed: lvOk(b.speed) ? b.speed : 3, handling: lvOk(b.handling) ? b.handling : 3,
-    owned: { speed: lvOk(o.speed) ? o.speed : 3, handling: lvOk(o.handling) ? o.handling : 3, paints: strs(o.paints), trims: strs(o.trims), glows: strs(o.glows) },
+    speed: lvOk(b.speed) ? b.speed : 3, handling: lvOk(b.handling) ? b.handling : 3, boost: bxOk(b.boost) ? b.boost : 0,
+    owned: { speed: lvOk(o.speed) ? o.speed : 3, handling: lvOk(o.handling) ? o.handling : 3, boost: bxOk(o.boost) ? o.boost : 0, paints: strs(o.paints), trims: strs(o.trims), glows: strs(o.glows) },
     best: +b.best || 0 };
 }
+/* special finishes (paints, trims, engine glows) are bought once and belong to the player for every ship;
+   speed, handling and boost upgrades are still bought for one ship at a time */
+const Looks = {
+  KEY: 'reactorRunFinishes', paints: [], trims: [], glows: [],
+  load() { try { const v = JSON.parse(localStorage.getItem(this.KEY) || 'null'); if (v) ['paints', 'trims', 'glows'].forEach(k => { this[k] = strs(v[k]); }); } catch (e) {} },
+  save() { try { localStorage.setItem(this.KEY, JSON.stringify({ paints: this.paints, trims: this.trims, glows: this.glows })); } catch (e) {} },
+  has(k, id) { return this[k].includes(id); },
+  /* true when this was new */
+  add(k, id) { if (this[k].includes(id)) return false; this[k].push(id); this.save(); return true; },
+  /* builds from before finishes were shared: anything bought for one ship now counts for all of them */
+  absorb(b) { let n = 0; ['paints', 'trims', 'glows'].forEach(k => (b.owned[k] || []).forEach(id => { if (!this[k].includes(id)) { this[k].push(id); n++; } })); if (n) this.save(); }
+};
+Looks.load();
 const store = { list: [], active: null };
-try { const v = JSON.parse(localStorage.getItem(BUILD_KEY) || 'null'); if (v && Array.isArray(v.list)) { store.list = v.list.map(cleanBuild).filter(Boolean).map(b => freeParts(b)).slice(0, MAX_BUILDS); store.active = v.active; } } catch (e) {}
+try { const v = JSON.parse(localStorage.getItem(BUILD_KEY) || 'null'); if (v && Array.isArray(v.list)) { const l = v.list.map(cleanBuild).filter(Boolean); l.forEach(b => Looks.absorb(b)); store.list = l.map(b => freeParts(b)).slice(0, MAX_BUILDS); store.active = v.active; } } catch (e) {}
 /* one high-score table for every ship; custom runs carry their frame and stats so they can be marked */
 let scoreTable = [], hadTable = false;
 try { const raw = localStorage.getItem(TABLE_KEY); hadTable = raw !== null; const v = JSON.parse(raw || '[]'); if (Array.isArray(v)) scoreTable = v.filter(r => r && typeof r.score === 'number' && typeof r.n === 'string').slice(0, 20); } catch (e) {}
@@ -1452,17 +1531,17 @@ const cloneBuild = b => JSON.parse(JSON.stringify(b));
 function newBuild() {
   const used = new Set(store.list.map(b => b.name)); let name = 'NOVA-7';
   for (let i = 0; i < 40 && used.has(name); i++) name = NAMES[i % NAMES.length] + '-' + (2 + Math.floor(Math.random() * 8));
-  return { id: 'b' + Date.now().toString(36) + Math.floor(Math.random() * 1e4).toString(36), name, frame: 'twin', paint: 'gunmetal', trim: 'amber', glow: 'ion', speed: 3, handling: 3,
-    owned: { speed: 3, handling: 3, paints: [], trims: [], glows: [] }, best: 0 };
+  return { id: 'b' + Date.now().toString(36) + Math.floor(Math.random() * 1e4).toString(36), name, frame: 'twin', paint: 'gunmetal', trim: 'amber', glow: 'ion', speed: 3, handling: 3, boost: 0,
+    owned: { speed: 3, handling: 3, boost: 0, paints: [], trims: [], glows: [] }, best: 0 };
 }
 /* the same build with anything it hasn't unlocked swapped back to what it had saved, or to the defaults */
 function freeParts(b, saved) {
   if (WEB_FREE) return JSON.parse(JSON.stringify(b));
-  const c = JSON.parse(JSON.stringify(b)), o = c.owned, ok = (list, id, have) => { const p = byId(list, id); return !p.special || have.includes(p.id); };
-  c.speed = Math.min(c.speed, Math.max(PRICE.free, o.speed)); c.handling = Math.min(c.handling, Math.max(PRICE.free, o.handling));
-  if (!ok(PAINTS, c.paint, o.paints)) c.paint = saved && ok(PAINTS, saved.paint, o.paints) ? saved.paint : 'gunmetal';
-  if (!ok(TRIMS, c.trim, o.trims)) c.trim = saved && ok(TRIMS, saved.trim, o.trims) ? saved.trim : 'amber';
-  if (!ok(GLOWS, c.glow, o.glows)) c.glow = saved && ok(GLOWS, saved.glow, o.glows) ? saved.glow : 'ion';
+  const c = JSON.parse(JSON.stringify(b)), o = c.owned, ok = (list, id, k) => { const p = byId(list, id); return !p.special || Looks.has(k, p.id); };
+  c.speed = Math.min(c.speed, Math.max(PRICE.free, o.speed)); c.handling = Math.min(c.handling, Math.max(PRICE.free, o.handling)); c.boost = Math.min(c.boost, o.boost);
+  if (!ok(PAINTS, c.paint, 'paints')) c.paint = saved && ok(PAINTS, saved.paint, 'paints') ? saved.paint : 'gunmetal';
+  if (!ok(TRIMS, c.trim, 'trims')) c.trim = saved && ok(TRIMS, saved.trim, 'trims') ? saved.trim : 'amber';
+  if (!ok(GLOWS, c.glow, 'glows')) c.glow = saved && ok(GLOWS, saved.glow, 'glows') ? saved.glow : 'ion';
   return c;
 }
 /* a ship with both speed and handling at level 5 refills its boost twice as fast */
@@ -1471,17 +1550,18 @@ function customDef(b) {
   const F = frameOf(b), st = SHIPS[F.stock], h = HND[b.handling];
   return { id: 'c:' + b.id, custom: true, bld: b, name: b.name, cls: F.label + ' frame · custom', snd: st.id,
     scale: st.scale, r: st.r, pad: st.pad, cam: st.cam, maxR: st.maxR, spanM: st.spanM,
-    speed: SPD[b.speed], steer: h[0], maxV: h[1], rollDur: h[2], rollCd: h[3], topMs: Math.round(170 * SPD[b.speed] * 4), pips: [F.size, b.speed, b.handling] };
+    speed: SPD[b.speed], steer: h[0], maxV: h[1], rollDur: h[2], rollCd: h[3], topMs: Math.round(170 * SPD[b.speed] * 4), boostDur: BOOST_BASE + BOOSTX[b.boost || 0], pips: [F.size, b.speed, b.handling] };
 }
-/* what this build still has to unlock: stat levels above both the free tier and what this ship already owns, special finishes it doesn't own */
+/* what this build still has to unlock: stat levels and boost upgrades above what this ship already owns, special finishes the player doesn't own yet */
 function dueLines(b) {
   if (WEB_FREE) return [];
   const L = [], o = b.owned, P0 = paintOf(b), T0 = trimOf(b), G0 = glowOf(b);
   if (b.speed > Math.max(PRICE.free, o.speed)) L.push({ k: 'speed', lv: b.speed, label: 'Speed level ' + b.speed, v: PRICE.lv[b.speed] });
   if (b.handling > Math.max(PRICE.free, o.handling)) L.push({ k: 'handling', lv: b.handling, label: 'Handling level ' + b.handling, v: PRICE.lv[b.handling] });
-  if (P0.special && !o.paints.includes(P0.id)) L.push({ k: 'paint', label: P0.label + ' paint', v: PRICE.paint });
-  if (T0.special && !o.trims.includes(T0.id)) L.push({ k: 'trim', label: T0.label + ' trim', v: PRICE.trim });
-  if (G0.special && !o.glows.includes(G0.id)) L.push({ k: 'glow', label: G0.label + ' engine glow', v: PRICE.glow });
+  if (b.boost > o.boost) L.push({ k: 'boost', lv: b.boost, label: 'Boost +' + BOOSTX[b.boost] + ' s', v: PRICE.boost[b.boost] });
+  if (P0.special && !Looks.has('paints', P0.id)) L.push({ k: 'paint', id: P0.id, label: P0.label + ' paint · all ships', v: PRICE.paint });
+  if (T0.special && !Looks.has('trims', T0.id)) L.push({ k: 'trim', id: T0.id, label: T0.label + ' trim · all ships', v: PRICE.trim });
+  if (G0.special && !Looks.has('glows', G0.id)) L.push({ k: 'glow', id: G0.id, label: G0.label + ' engine glow · all ships', v: PRICE.glow });
   return L;
 }
 
@@ -3867,7 +3947,7 @@ const BD = { open: false, draft: null, tab: 'look', spin: 0.55, spinV: 0.32, til
 const LOCK = '<svg viewBox="0 0 10 10" aria-hidden="true"><path d="M3 4V3a2 2 0 0 1 4 0v1h.5a.5.5 0 0 1 .5.5v4a.5.5 0 0 1-.5.5h-5a.5.5 0 0 1-.5-.5v-4a.5.5 0 0 1 .5-.5zm1 0h2V3a1 1 0 0 0-2 0z"/></svg>';
 const TOP_MS = SPD.map(k => Math.round(170 * k * 4)), TURN = HND.map(h => Math.round(h[0] / 11 * 100));
 const savedOf = d => store.list.find(b => b.id === d.id) || null;
-const same = (a, b) => !!a && !!b && ['name', 'frame', 'paint', 'trim', 'glow', 'speed', 'handling'].every(k => a[k] === b[k]);
+const same = (a, b) => !!a && !!b && ['name', 'frame', 'paint', 'trim', 'glow', 'speed', 'handling', 'boost'].every(k => a[k] === b[k]);
 function buildPanels() {
   $('bdFrames').innerHTML = FRAMES.map(f => { const st = SHIPS[f.stock];
     return '<button class="fr" type="button" data-frame="' + f.id + '"><b>' + f.label + '</b><span class="pp">' + [0, 1, 2, 3, 4].map(k => '<i' + (k < f.size ? ' class="on"' : '') + '></i>').join('') + '</span><small>Size ' + f.size + ' · ' + st.spanM + ' m</small></button>'; }).join('');
@@ -3877,26 +3957,26 @@ function buildPanels() {
   fill('bdPaints', PAINTS, 'paint'); fill('bdTrims', TRIMS, 'trim'); fill('bdGlows', GLOWS, 'glow', true);
   const cells = k => [0, 1, 2, 3, 4, 5].map(lv => '<button class="lv" type="button" data-' + k + '="' + lv + '"><b>' + lv + '</b><small></small></button>').join('');
   $('bdSpeed').innerHTML = cells('speed'); $('bdHand').innerHTML = cells('hand');
+  $('bdBoost').innerHTML = BOOSTX.map((x, t) => '<button class="lv" type="button" data-boost="' + t + '"><b>' + (t ? '+' + x + ' s' : 'Base') + '</b><small></small></button>').join('');
 }
 buildPanels();
-if (WEB_FREE) $('bdNote').textContent = 'Every level and finish is free to use here. In the iPhone and Android app, levels 4 and 5 and the special finishes are paid unlocks for each ship. Custom ships go on the same high-score table as the stock ships, marked as custom.';
+if (WEB_FREE) $('bdNote').textContent = 'Every level, boost upgrade and finish is free to use here. In the iPhone and Android app, levels 4 and 5 and the boost upgrades are paid unlocks for one ship, and each special finish is bought once for all your ships. Custom ships go on the same high-score table as the stock ships, marked as custom.';
 function renderBuilder() {
   const b = BD.draft; if (!b) return;
   const F = frameOf(b), P0 = paintOf(b), T0 = trimOf(b), G0 = glowOf(b), o = b.owned, lines = dueLines(b), total = lines.reduce((s, l) => s + l.v, 0);
   const press = (sel, attr, val) => document.querySelectorAll(sel).forEach(el => el.setAttribute('aria-pressed', el.dataset[attr] === String(val) ? 'true' : 'false'));
   press('#bdFrames .fr', 'frame', b.frame); press('#bdLook [data-paint]', 'paint', b.paint); press('#bdLook [data-trim]', 'trim', b.trim); press('#bdLook [data-glow]', 'glow', b.glow);
-  const marks = (kind, list, have, price, what) => document.querySelectorAll('#bdLook [data-' + kind + ']').forEach(el => {
-    const p = byId(list, el.dataset[kind]), own = !p.special || WEB_FREE || have.includes(p.id);
+  const marks = (kind, list, what) => document.querySelectorAll('#bdLook [data-' + kind + ']').forEach(el => {
+    const p = byId(list, el.dataset[kind]), own = !p.special || WEB_FREE || Looks.has(kind + 's', p.id), price = p.special ? finPrice(kind, p.id) : '';
     if (p.special) { el.querySelector('.lock').hidden = own; el.querySelector('small').textContent = own ? (WEB_FREE ? 'Free' : 'Owned') : price; el.classList.toggle('own', own); }
     el.setAttribute('aria-label', p.label + what + (p.special && !WEB_FREE ? own ? ', owned' : ', ' + price : ', free'));
   });
-  const pp = Shop.price(SKU.paint, PRICE.paint), pt = Shop.price(SKU.trim, PRICE.trim), pg = Shop.price(SKU.glow, PRICE.glow);
-  marks('paint', PAINTS, o.paints, pp, ' paint'); marks('trim', TRIMS, o.trims, pt, ' trim'); marks('glow', GLOWS, o.glows, pg, ' engine glow');
+  marks('paint', PAINTS, ' paint'); marks('trim', TRIMS, ' trim'); marks('glow', GLOWS, ' engine glow');
   const ownTag = (special, owned, price) => special && !WEB_FREE ? owned ? ' · <em>owned</em>' : ' · <em>' + price + '</em>' : '';
   $('frLbl').innerHTML = F.label + ' · size ' + F.size;
-  $('paLbl').innerHTML = P0.label + ownTag(P0.special, o.paints.includes(P0.id), pp);
-  $('trLbl').innerHTML = T0.label + ownTag(T0.special, o.trims.includes(T0.id), pt);
-  $('glLbl').innerHTML = G0.label + ownTag(G0.special, o.glows.includes(G0.id), pg);
+  $('paLbl').innerHTML = P0.label + ownTag(P0.special, Looks.has('paints', P0.id), P0.special && finPrice('paint', P0.id));
+  $('trLbl').innerHTML = T0.label + ownTag(T0.special, Looks.has('trims', T0.id), T0.special && finPrice('trim', T0.id));
+  $('glLbl').innerHTML = G0.label + ownTag(G0.special, Looks.has('glows', G0.id), G0.special && finPrice('glow', G0.id));
   const lvCells = (sel, attr, val, owned) => document.querySelectorAll(sel).forEach(el => {
     const lv = +el.dataset[attr], free = lv <= PRICE.free, have = lv <= Math.max(PRICE.free, owned);
     el.setAttribute('aria-pressed', lv === val ? 'true' : 'false'); el.classList.toggle('fill', lv < val); el.classList.toggle('paid', !have);
@@ -3904,6 +3984,14 @@ function renderBuilder() {
     el.setAttribute('aria-label', 'Level ' + lv + ', ' + (free ? 'free' : have ? 'owned' : lvPrice(lv)));
   });
   lvCells('#bdSpeed .lv', 'speed', b.speed, o.speed); lvCells('#bdHand .lv', 'hand', b.handling, o.handling);
+  document.querySelectorAll('#bdBoost .lv').forEach(el => {
+    const t = +el.dataset.boost, free = WEB_FREE || t === 0, have = free || t <= o.boost, what = t ? 'Boost plus ' + BOOSTX[t] + ' seconds' : 'Base boost';
+    el.setAttribute('aria-pressed', t === b.boost ? 'true' : 'false'); el.classList.toggle('fill', t < b.boost); el.classList.toggle('paid', !have);
+    el.querySelector('small').textContent = free ? 'Free' : have ? 'Owned' : bxPrice(t);
+    el.setAttribute('aria-label', what + ', ' + (free ? 'free' : have ? 'owned' : bxPrice(t)));
+  });
+  $('bxLbl').innerHTML = (b.boost ? '+' + BOOSTX[b.boost] + ' s' : 'Base') + (!WEB_FREE && b.boost > o.boost ? ' · <em>' + bxPrice(b.boost) + '</em>' : '');
+  $('bxRead').innerHTML = 'A full boost lasts <b>' + (BOOST_BASE + BOOSTX[b.boost]).toFixed(1) + ' s</b>' + (b.boost ? ' · base ' + BOOST_BASE.toFixed(1) + ' s' : '') + ' · it refills just as fast';
   const h = HND[b.handling];
   $('spLbl').innerHTML = 'Level ' + b.speed + (b.speed > Math.max(PRICE.free, o.speed) ? ' · <em>' + lvPrice(b.speed) + '</em>' : '');
   $('hdLbl').innerHTML = 'Level ' + b.handling + (b.handling > Math.max(PRICE.free, o.handling) ? ' · <em>' + lvPrice(b.handling) + '</em>' : '');
@@ -3958,6 +4046,7 @@ function edit(k, v) {
   applyShip(b);
   if (k === 'handling') { S.rollDir = S.rollDir > 0 ? -1 : 1; S.rollT = def.rollDur; } /* roll at the new handling so you can feel the difference */
   if (k === 'speed') { BD.flare = 0.6 + v * 0.1; Sfx.boostKick(); }
+  if (k === 'boost') { BD.flare = 0.75 + v * 0.12; Sfx.boostKick(); }
   if (k === 'frame') { S.flash = Math.max(S.flash, 0.25); S.flashCol.setRGB(0.6, 0.9, 1); }
   renderBuilder();
 }
@@ -3970,6 +4059,7 @@ $('bdFrames').addEventListener('click', e => { const t = e.target.closest('[data
 $('bdLook').addEventListener('click', e => { const t = e.target.closest('[data-paint],[data-trim],[data-glow]'); if (!t) return; const k = t.dataset.paint ? 'paint' : t.dataset.trim ? 'trim' : 'glow'; edit(k, t.dataset[k]); });
 $('bdSpeed').addEventListener('click', e => { const t = e.target.closest('[data-speed]'); if (t) edit('speed', +t.dataset.speed); });
 $('bdHand').addEventListener('click', e => { const t = e.target.closest('[data-hand]'); if (t) edit('handling', +t.dataset.hand); });
+$('bdBoost').addEventListener('click', e => { const t = e.target.closest('[data-boost]'); if (t) edit('boost', +t.dataset.boost); });
 /* phones: fold the options away to see the ship full size; picking a tab opens them again */
 function setMin(on) {
   const pn = document.querySelector('.bd-panel'); if (pn.classList.contains('min') === on) return;
@@ -4013,12 +4103,19 @@ const endDrag = e => { const d = BD.drag; if (!d || e.pointerId !== d.id) return
 });
 
 /* ---------- purchases ---------- */
-/* In the iOS and Android apps every unlock is a real in-app purchase. They are consumables, so the same unlock can be bought again for another ship.
+/* In the iOS and Android apps every unlock is a real in-app purchase. Speed and handling levels and boost upgrades are consumables, bought again for each ship.
+   Each special finish is its own non-consumable product: bought once, it works on every ship, and Restore brings it back on a new phone.
    The web has no store: paid parts can be test-flown there and are bought in the app. */
 const NATIVE = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
-const SKU = { level4: 'ro.biotic.reactorrun.level4', level5: 'ro.biotic.reactorrun.level5', paint: 'ro.biotic.reactorrun.paint', trim: 'ro.biotic.reactorrun.trim', glow: 'ro.biotic.reactorrun.glow',
-  worlds: 'ro.biotic.reactorrun.allworlds' /* the one non-consumable: opens every world, restorable */ };
-const skuOf = l => l.k === 'speed' || l.k === 'handling' ? (l.lv === 5 ? SKU.level5 : SKU.level4) : SKU[l.k];
+const SKU = { level4: 'ro.biotic.reactorrun.level4', level5: 'ro.biotic.reactorrun.level5',
+  boost1: 'ro.biotic.reactorrun.boost1', boost2: 'ro.biotic.reactorrun.boost2', boost3: 'ro.biotic.reactorrun.boost3',
+  worlds: 'ro.biotic.reactorrun.allworlds' /* non-consumable: opens every world, restorable */ };
+/* one non-consumable per special finish: ro.biotic.reactorrun.paint.gold, ro.biotic.reactorrun.trim.gold, ro.biotic.reactorrun.glow.plasma ... */
+const FIN_KINDS = { paint: PAINTS, trim: TRIMS, glow: GLOWS }, finSku = (k, id) => 'ro.biotic.reactorrun.' + k + '.' + id;
+const FIN_OF = {};
+Object.entries(FIN_KINDS).forEach(([k, list]) => list.filter(p => p.special).forEach(p => { FIN_OF[finSku(k, p.id)] = [k + 's', p.id]; }));
+const isFin = l => l.k === 'paint' || l.k === 'trim' || l.k === 'glow';
+const skuOf = l => l.k === 'speed' || l.k === 'handling' ? (l.lv === 5 ? SKU.level5 : SKU.level4) : l.k === 'boost' ? SKU['boost' + l.lv] : finSku(l.k, l.id);
 const Shop = {
   api: null, ok: false, prod: {}, cur: null,
   async init() {
@@ -4026,7 +4123,7 @@ const Shop = {
     this.api = (window.Capacitor.Plugins || {}).NativePurchases || null; if (!this.api) return;
     try {
       const s = await this.api.isBillingSupported(); if (s && s.isBillingSupported === false) return;
-      const r = await this.api.getProducts({ productIdentifiers: Object.values(SKU), productType: 'inapp' });
+      const r = await this.api.getProducts({ productIdentifiers: [...Object.values(SKU), ...Object.keys(FIN_OF)], productType: 'inapp' });
       (r.products || []).forEach(p => { this.prod[p.identifier] = p; this.cur = this.cur || p.currencyCode; });
       this.ok = Object.keys(this.prod).length > 0;
       if (BD.open) renderBuilder();
@@ -4042,9 +4139,11 @@ const Shop = {
     }
     return money(lines.reduce((s, l) => s + l.v, 0));
   },
-  buy(l) { return this.api.purchaseProduct({ productIdentifier: skuOf(l), productType: 'inapp', isConsumable: true, quantity: 1 }); }
+  buy(l) { return this.api.purchaseProduct({ productIdentifier: skuOf(l), productType: 'inapp', isConsumable: !isFin(l), quantity: 1 }); }
 };
 const lvPrice = lv => Shop.price(lv === 5 ? SKU.level5 : SKU.level4, PRICE.lv[lv]);
+const bxPrice = t => Shop.price(SKU['boost' + t], PRICE.boost[t]);
+const finPrice = (k, id) => Shop.price(finSku(k, id), PRICE[k]);
 Shop.init();
 
 /* ---------- unlock sheet ---------- */
@@ -4052,7 +4151,8 @@ function grant(b, l) {
   const o = b.owned;
   if (l.k === 'speed') o.speed = Math.max(o.speed, b.speed);
   else if (l.k === 'handling') o.handling = Math.max(o.handling, b.handling);
-  else { const key = l.k + 's'; if (!o[key].includes(b[l.k])) o[key].push(b[l.k]); }
+  else if (l.k === 'boost') o.boost = Math.max(o.boost, b.boost);
+  else Looks.add(l.k + 's', l.id);
 }
 function openUnlock(msg) {
   const b = BD.draft, lines = dueLines(b);
@@ -4062,16 +4162,27 @@ function openUnlock(msg) {
   const note = msg ? '<p class="fine ul-msg">' + esc(msg) + '</p>' : '';
   if (NATIVE && Shop.ok) {
     $('ulPay').innerHTML = note + '<button class="go" id="ulBuy" type="button">Buy for ' + Shop.total(lines) + '</button>'
-      + (lines.length > 1 ? '<p class="fine">Each unlock is its own store purchase, so the store asks you to confirm ' + lines.length + ' times.</p>' : '');
+      + (lines.length > 1 ? '<p class="fine">Each unlock is its own store purchase, so the store asks you to confirm ' + lines.length + ' times.</p>' : '')
+      + (lines.some(isFin) ? '<p class="fine">Finishes are yours for every ship. Bought one on another phone? <button class="link" id="ulRestore" type="button">Restore purchases</button></p>' : '');
     $('ulBuy').addEventListener('click', buyAll);
+    if ($('ulRestore')) $('ulRestore').addEventListener('click', restoreFinishes);
   } else if (NATIVE) {
     $('ulPay').innerHTML = note + '<div class="pay-note"><b>Store not available</b><span class="fine">The App Store or Google Play could not be reached. Check your connection and try again, or test-fly the build for free.</span><button class="ghost" id="ulRetry" type="button">Try again</button></div>';
     $('ulRetry').addEventListener('click', async () => { $('ulRetry').disabled = true; await Shop.init(); openUnlock(); });
   } else {
-    $('ulPay').innerHTML = '<div class="pay-note"><b>Unlocks are bought in the app</b><span class="fine">Speed and handling levels 4 and 5 and the special finishes are sold in the Reactor Run app for iPhone and Android. Here you can test-fly this build, or keep it with free parts.</span><button class="ghost ion" id="ulFree" type="button">Save with free parts</button></div>';
+    $('ulPay').innerHTML = '<div class="pay-note"><b>Unlocks are bought in the app</b><span class="fine">Speed and handling levels 4 and 5, the boost upgrades and the special finishes are sold in the Reactor Run app for iPhone and Android. Here you can test-fly this build, or keep it with free parts.</span><button class="ghost ion" id="ulFree" type="button">Save with free parts</button></div>';
     $('ulFree').addEventListener('click', saveFreeParts);
   }
   show('unlock', true); setTimeout(() => ($('ulBuy') || $('ulTest')).focus(), 60);
+}
+async function restoreFinishes() {
+  const btn = $('ulRestore'); if (btn) { btn.disabled = true; btn.textContent = 'Checking'; }
+  try { await Shop.api.restorePurchases(); } catch (e) {}
+  await checkWorlds();
+  const n = checkWorlds.looks;
+  const b = BD.draft;
+  if (!dueLines(b).length) { commit(b); show('unlock', false); closeBuilder(); toast('Purchases restored · ' + b.name + ' is ready to fly', 3200); return; }
+  renderBuilder(); openUnlock(n ? n + ' finish' + (n === 1 ? '' : 'es') + ' restored.' : 'No finishes were found for this store account.');
 }
 function saveFreeParts() {
   const saved = savedOf(BD.draft), b = freeParts(BD.draft, saved);
@@ -4085,14 +4196,22 @@ async function buyAll() {
   let done = 0, fail = null;
   for (const l of lines) {
     const btn = $('ulBuy'); if (btn) { btn.disabled = true; btn.textContent = lines.length > 1 ? 'Buying ' + (done + 1) + ' of ' + lines.length : 'Buying'; }
-    try { await Shop.buy(l); grant(b, l); done++; commit(freeParts(b, savedOf(b))); }
-    catch (e) { fail = e; break; }
+    try {
+      const t = await Shop.buy(l);
+      /* a finish waiting on payment (Ask to Buy, a pending card) is added by the store listener once it goes through */
+      if (isFin(l) && t && t.purchaseState === '0') { fail = { message: 'pending' }; break; }
+      grant(b, l); done++; commit(freeParts(b, savedOf(b)));
+    } catch (e) {
+      /* the store says this finish is already owned (bought on another phone or before a reinstall): take it back from the store */
+      if (isFin(l) && /own/i.test(String((e && (e.message || e.code)) || e))) { await checkWorlds(); if (Looks.has(l.k + 's', l.id)) { done++; commit(freeParts(b, savedOf(b))); continue; } }
+      fail = e; break;
+    }
   }
   buying = false;
   if (!fail) { commit(b); show('unlock', false); closeBuilder(); toast('Unlocked · ' + b.name + ' is ready to fly', 3200); return; }
   const why = String((fail && (fail.message || fail.code)) || fail);
   renderBuilder();
-  openUnlock((done ? done + ' of ' + lines.length + ' unlocked. ' : '') + (/cancel/i.test(why) ? 'Purchase cancelled.' : 'The purchase did not go through.'));
+  openUnlock((done ? done + ' of ' + lines.length + ' unlocked. ' : '') + (why === 'pending' ? 'Payment pending. The finish unlocks as soon as the store confirms it.' : /cancel/i.test(why) ? 'Purchase cancelled.' : 'The purchase did not go through.'));
 }
 $('ulClose').addEventListener('click', () => show('unlock', false));
 $('unlock').addEventListener('click', e => { if (e.target === $('unlock')) show('unlock', false); });
@@ -4107,10 +4226,10 @@ function openGarage() { gDel = null; renderGarage(); show('garage', true); setTi
 function renderGarage() {
   const act = activeBuild();
   $('gShips').innerHTML = store.list.map(b => {
-    const F = frameOf(b), P0 = paintOf(b), buys = (b.owned.speed > 3) + (b.owned.handling > 3) + b.owned.paints.length + b.owned.trims.length + b.owned.glows.length;
+    const F = frameOf(b), P0 = paintOf(b), buys = (b.owned.speed > 3) + (b.owned.handling > 3) + (b.owned.boost > 0);
     const acts = gDel === b.id ? '<button class="bd-btn del" type="button" data-gdel2="' + b.id + '">Delete</button><button class="bd-btn" type="button" data-gkeep="1">Keep</button>'
       : '<button class="bd-btn" type="button" data-gfly="' + b.id + '">Fly</button><button class="bd-btn" type="button" data-gedit="' + b.id + '">Edit</button><button class="bd-btn del" type="button" data-gdel="' + b.id + '" aria-label="Delete ' + esc(b.name) + '">&times;</button>';
-    return '<div class="g-row' + (act && act.id === b.id ? ' on' : '') + '"><div><b>' + esc(b.name) + '</b><small>' + F.label + ' · ' + P0.label + ' · speed ' + b.speed + ' · handling ' + b.handling + '</small><small>'
+    return '<div class="g-row' + (act && act.id === b.id ? ' on' : '') + '"><div><b>' + esc(b.name) + '</b><small>' + F.label + ' · ' + P0.label + ' · speed ' + b.speed + ' · handling ' + b.handling + (b.boost ? ' · boost +' + BOOSTX[b.boost] + ' s' : '') + '</small><small>'
       + (gDel === b.id ? 'Delete this ship and its ' + buys + ' unlock' + (buys === 1 ? '' : 's') + '?' : (b.best ? 'Best ' + fmt(b.best) : 'No runs yet') + (buys ? ' · ' + buys + ' unlock' + (buys === 1 ? '' : 's') : '')) + '</small></div><div class="g-acts">' + acts + '</div></div>';
   }).join('') + (store.list.length < MAX_BUILDS ? '<button class="ghost ion" type="button" data-gnew="1">+ New build</button>' : '');
 }
@@ -4778,7 +4897,10 @@ levelsEl.addEventListener('keydown', e => {
 
 /* ---------- worlds sheet: how a locked world opens, and the one-time "all worlds" purchase ---------- */
 let wFor = 0, wBusy = false;
-const ownsWorlds = t => !!t && t.productIdentifier === SKU.worlds && (t.purchaseState == null || t.purchaseState === '1') && !t.revocationDate;
+const paidFor = t => !!t && (t.purchaseState == null || t.purchaseState === '1') && !t.revocationDate;
+const ownsWorlds = t => paidFor(t) && t.productIdentifier === SKU.worlds;
+/* a finish purchase from the store (now, from Restore, or one that finished later): adds it to the player's finishes; true when it was new */
+const takeFinish = t => { const f = paidFor(t) && FIN_OF[t.productIdentifier]; return !!f && Looks.add(f[0], f[1]); };
 function openWorlds(i, msg) {
   wFor = typeof i === 'number' ? i : startLv;
   const lk = !Worlds.open(wFor), top = Worlds.top(), N = BIOMES.length, nm = k => '<b>' + LEVEL_NAMES[k] + '</b>';
@@ -4807,14 +4929,19 @@ function worldsOpened(how) {
   renderLevels(); show('worlds', false);
   toast((how === 'restore' ? 'Purchase restored · ' : 'Unlocked · ') + 'all ' + BIOMES.length + ' worlds are open', 3400);
 }
-/* asks the store whether this account owns the "all worlds" unlock (startup, Restore, and an "already owned" reply) */
+/* asks the store what this account owns: the "all worlds" unlock and the special finishes (startup, Restore, and an "already owned" reply).
+   Returns whether it owns all worlds; checkWorlds.looks is how many finishes it added */
 async function checkWorlds() {
+  checkWorlds.looks = 0;
   if (!NATIVE || !Shop.api || !Shop.api.getPurchases) return false;
+  let worlds = false;
   try {
     const r = await Shop.api.getPurchases({ productType: 'inapp', onlyCurrentEntitlements: true });
-    if (((r && r.purchases) || []).some(ownsWorlds)) { if (Worlds.grantAll()) renderLevels(); return true; }
+    ((r && r.purchases) || []).forEach(t => { if (ownsWorlds(t)) worlds = true; if (takeFinish(t)) checkWorlds.looks++; });
   } catch (e) {}
-  return false;
+  if (worlds && Worlds.grantAll()) renderLevels();
+  if (checkWorlds.looks && BD.open) renderBuilder();
+  return worlds;
 }
 async function buyWorlds() {
   if (wBusy) return; wBusy = true;
@@ -4844,7 +4971,10 @@ $('worlds').addEventListener('click', e => { if (e.target === $('worlds')) show(
 if (NATIVE && Shop.api) {
   checkWorlds();
   /* a purchase that finishes later (Android pending payments, Ask to Buy on iOS) */
-  try { Shop.api.addListener('transactionUpdated', t => { if (ownsWorlds(t) && Worlds.grantAll()) worldsOpened('buy'); }); } catch (e) {}
+  try { Shop.api.addListener('transactionUpdated', t => {
+    if (ownsWorlds(t) && Worlds.grantAll()) worldsOpened('buy');
+    if (takeFinish(t)) { const f = FIN_OF[t.productIdentifier], p = byId(FIN_KINDS[f[0].slice(0, -1)], f[1]); if (BD.open) renderBuilder(); toast('Unlocked · ' + p.label + ' for all your ships', 3200); }
+  }); } catch (e) {}
 }
 selectLevel(startLv, true); S.flash = 0;
 const routeSegs = BIOMES.map((b, i) => {
@@ -5460,7 +5590,7 @@ function step() {
   if (S.boosting && !S.wasBoosting) { Sfx.boostKick(); S.aberrKick = Math.max(S.aberrKick, 0.02); S.shake = Math.max(S.shake, 0.25); }
   S.wasBoosting = S.boosting;
   const regen = (S.boss && S.boss.phase !== 'warn' ? 0.2 : 0.12) * (fastCharge(def) ? 2 : 1);
-  if (S.boosting) S.boost = Math.max(0, S.boost - 0.42 * dt); else S.boost = Math.min(1, S.boost + regen * dt);
+  if (S.boosting) S.boost = Math.max(0, S.boost - dt / (def.boostDur || BOOST_BASE)); else S.boost = Math.min(1, S.boost + regen * dt);
   let target = S.mode === 'title' ? (S.build ? 3 : 72) : S.mode === 'won' ? 90 : S.mode === 'play' ? base * def.speed * (S.boosting ? 1.55 : 1) : 26;
   S.speed = damp(S.speed, target, S.boosting ? 3.6 : 1.5, dt);
 

@@ -76,26 +76,34 @@ To change the icon or launch screen, replace the images in `assets/` (same sizes
 
 ## In-app purchases (worlds and ship builder)
 
-The game sells two kinds of things through the `@capgo/native-purchases` plugin (StoreKit on iPhone, Google Play Billing on Android): opening every world at once, and the paid parts in the ship builder. Create these six products in **both** stores before testing, with exactly these IDs:
+The game sells two kinds of things through the `@capgo/native-purchases` plugin (StoreKit on iPhone, Google Play Billing on Android): opening every world at once, and the paid parts in the ship builder. Create these 24 products in **both** stores before testing, with exactly these IDs:
 
 | Product ID | What it unlocks | Type | Price |
 |---|---|---|---|
-| `ro.biotic.reactorrun.allworlds` | All nine worlds at once, for every ship | **Non-consumable** | €3.99 |
+| `ro.biotic.reactorrun.allworlds` | All nine worlds at once | **Non-consumable** | €3.99 |
 | `ro.biotic.reactorrun.level4` | Speed or handling level 4, for one ship | Consumable | €1.99 |
 | `ro.biotic.reactorrun.level5` | Speed or handling level 5, for one ship | Consumable | €3.99 |
-| `ro.biotic.reactorrun.paint` | One special paint (Silver, Gold, Titanium black, Carbon fibre, Gold carbon, Rosso, Opal, Diamond), for one ship | Consumable | €1.99 |
-| `ro.biotic.reactorrun.trim` | One special trim (the same eight finishes), for one ship | Consumable | €0.99 |
-| `ro.biotic.reactorrun.glow` | One special engine glow (Plasma, Toxic), for one ship | Consumable | €0.99 |
+| `ro.biotic.reactorrun.boost1` | Boost lasts 2 s longer, for one ship | Consumable | $1 |
+| `ro.biotic.reactorrun.boost2` | Boost lasts 5 s longer, for one ship | Consumable | $2 |
+| `ro.biotic.reactorrun.boost3` | Boost lasts 10 s longer, for one ship | Consumable | $5 |
+| `ro.biotic.reactorrun.paint.<finish>` (8 products) | That special paint, for every ship | **Non-consumable** | €1.99 each |
+| `ro.biotic.reactorrun.trim.<finish>` (8 products) | That special trim, for every ship | **Non-consumable** | €0.99 each |
+| `ro.biotic.reactorrun.glow.plasma`, `ro.biotic.reactorrun.glow.toxic` | That engine glow, for every ship | **Non-consumable** | €0.99 each |
+
+`<finish>` is each of `silver`, `gold`, `titanium`, `carbon`, `goldcarbon`, `rosso`, `opal`, `diamond` (so `ro.biotic.reactorrun.paint.gold`, `ro.biotic.reactorrun.trim.gold` and so on). The old shared `ro.biotic.reactorrun.paint`, `.trim` and `.glow` products are no longer used; don't create them.
 
 **Worlds.** A new player starts with Shaft 7 only. Each world opens when they fly through the one before it in a run (test flights from the builder don't count), and every world stays in the hangar picker so the title screen can still fly them through a locked one. Picking a locked world turns Launch into *Locked*, which opens a sheet with how to open it, **Unlock all** and **Restore purchase**. The all-worlds unlock is a non-consumable, so the stores keep it for the player's account: the game checks it at every start (so a reinstall gets it back on its own) and the Restore button asks the store again. Apple requires that Restore button for non-consumables. Players who installed before the lock keep every world their runs had already reached.
 
-The builder parts are consumables because each unlock belongs to the ship it was bought for, so the same unlock can be bought again for another ship. The game shows each store's own local price once the products load. A cart with several unlocks is bought one product at a time, so the player confirms once per item. Anything bought before a cancel is kept.
+**Finishes** (special paints, trims and engine glows) are bought once and then work on every ship the player builds, now and later. Each one is its own non-consumable, so the store keeps it for the player's account: the game checks them at every start, the unlock sheet has a **Restore purchases** link, and buying one the account already owns (after a reinstall, say) just takes it back from the store. Players who bought a finish for one ship in an earlier version get it for all their ships.
 
-- **App Store Connect:** *Monetization > In-App Purchases*, add `allworlds` as *Non-Consumable* and the other five as *Consumable*. In Xcode, add the *In-App Purchase* capability to the App target (*Signing & Capabilities*). Test with a Sandbox tester account (*Users and Access > Sandbox*).
-- **Google Play Console:** upload a build to a testing track first (Play only lists products for an app that has a build), then *Monetize > Products > In-app products* (Play has one kind of in-app product; the game tells Play which ones to consume, and never consumes `allworlds`). Add your Google account under *Settings > License testing* to buy without being charged.
-- **Where unlocks live:** builds and their unlocks are saved on the phone, like best scores. Consumables can't be restored by the stores, so deleting the app loses them. A cloud save (Game Center / Google Play Games saved games) is the fix before launch.
-- **App ID:** the product IDs start with the app ID. If you change the app ID, change the `SKU` list in the game file to match.
-- **On the web** there is no store, so every speed and handling level and every finish is free to use and keep there. Worlds still open one at a time on the web; the Unlock all sheet there says it is bought in the app.
+**Speed and handling levels and boost upgrades** belong to the ship they were bought for, so they are consumables that can be bought again for another ship. A boost upgrade adds 2, 5 or 10 seconds to a full boost (normally about 2.4 s); the meter refills just as fast, so a bigger tier also gives more boost overall. Picking a higher tier on a ship that owns a lower one costs that tier's price.
+
+The game shows each store's own local price once the products load. A cart with several unlocks is bought one product at a time, so the player confirms once per item. Anything bought before a cancel is kept.
+
+- **App Store Connect:** *Monetization > In-App Purchases*, add `allworlds` and the 18 finishes as *Non-Consumable*, and `level4`, `level5`, `boost1`, `boost2`, `boost3` as *Consumable*. For the boost prices pick the $1.00, $2.00 and $5.00 price points (the other countries follow from them). In Xcode, add the *In-App Purchase* capability to the App target (*Signing & Capabilities*). Test with a Sandbox tester account (*Users and Access > Sandbox*).
+- **Google Play Console:** upload a build to a testing track first (Play only lists products for an app that has a build), then *Monetize > Products > In-app products* (Play has one kind of in-app product; the game tells Play which ones to consume, and never consumes `allworlds` or a finish). Add your Google account under *Settings > License testing* to buy without being charged.
+- **Where unlocks live:** builds and their per-ship unlocks are saved on the phone, like best scores. Consumables can't be restored by the stores, so deleting the app loses the levels and boost upgrades (finishes and worlds come back from the store). A cloud save (Game Center / Google Play Games saved games) is the fix before launch.
+- **On the web** there is no store, so every speed and handling level, boost upgrade and finish is free to use and keep there. Worlds still open one at a time on the web; the Unlock all sheet there says it is bought in the app.
 
 ## Worldwide scores (Firebase)
 
