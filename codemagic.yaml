@@ -1,5 +1,6 @@
 # Codemagic iOS workflow for the Reactor Run Capacitor app.
-# Builds a signed IPA and uploads it to TestFlight for the internal group.
+# Builds a signed App Store IPA and uploads it to TestFlight.
+# Do not set testFlightInternalTestingOnly: that mark blocks external testing and App Store review.
 # The App Store Connect key name below matches Team integrations → Developer Portal.
 workflows:
   ios-capacitor:
@@ -27,12 +28,16 @@ workflows:
       - name: Set the iOS build number
         script: |
           cd "$CM_BUILD_DIR/ios/App"
-          agvtool new-version -all "$BUILD_NUMBER"
+          # Builds 1–13 are already on App Store Connect. Never reuse them.
+          if [ "$BUILD_NUMBER" -lt 14 ]; then
+            agvtool new-version -all 14
+          else
+            agvtool new-version -all "$BUILD_NUMBER"
+          fi
       - name: Apply the iOS signing profile
         script: |
           xcode-project use-profiles \
-            --project "$CM_BUILD_DIR/$XCODE_PROJECT" \
-            --custom-export-options='{"testFlightInternalTestingOnly": true}'
+            --project "$CM_BUILD_DIR/$XCODE_PROJECT"
       - name: Build the IPA
         script: |
           xcode-project build-ipa \
