@@ -1,0 +1,35 @@
+/* Public site styles for reactorrun.app: support, privacy, and marketing pages. */
+:root {
+  --bg: #07080a;
+  --ink: #eef1f4;
+  --muted: #9aa1ab;
+  --line: rgba(238, 241, 244, 0.14);
+  --amber: #ffad33;
+  --card: #101216;
+}
+* { box-sizing: border-box; }
+html { background: var(--bg); }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 17px/1.55 "Segoe UI", Helvetica, Arial, sans-serif;
+}
+a { color: var(--amber); }
+a:hover { color: #ffd18a; }
+.wrap { max-width: 720px; margin: 0 auto; padding: 32px 22px 64px; }
+header.top { display: flex; justify-content: space-between; gap: 16px; align-items: baseline; margin-bottom: 36px; }
+.word { font-weight: 800; letter-spacing: 0.08em; text-decoration: none; color: var(--ink); }
+.word span { color: var(--amber); }
+nav { display: flex; flex-wrap: wrap; gap: 8px 16px; }
+nav a { color: var(--muted); text-decoration: none; font-size: 14px; }
+nav a[aria-current="page"], nav a:hover { color: var(--ink); }
+h1 { font-size: 40px; line-height: 1.05; margin: 0 0 12px; letter-spacing: -0.03em; }
+h2 { font-size: 22px; margin: 32px 0 8px; }
+p, li { color: var(--ink); }
+.lede { font-size: 20px; color: var(--muted); margin-top: 0; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; margin: 14px 0; }
+.card b { display: block; margin-bottom: 4px; }
+ul { padding-left: 20px; }
+.fine { color: var(--muted); font-size: 14px; }
+footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--line); color: var(--muted); font-size: 14px; }

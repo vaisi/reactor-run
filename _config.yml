@@ -1,0 +1,17 @@
+# GitHub Pages config for reactorrun.app. Serves the public pages and keeps the app source and developer readme off the website.
+title: Reactor Run
+description: A flight game through nine reactor shafts, for iPhone and Android.
+exclude:
+  - android
+  - ios
+  - game
+  - scripts
+  - firebase
+  - assets
+  - node_modules
+  - package.json
+  - package-lock.json
+  - capacitor.config.json
+  - firebase.json
+  - codemagic.yaml
+  - README.md
