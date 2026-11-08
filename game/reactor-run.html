@@ -292,7 +292,7 @@ body.pad .phint .padh{display:inline}
 .ctl-hint span:nth-child(4){animation-delay:.55s}
 body.pad button:focus,body.pad input:focus,body.pad a:focus,body.pad [tabindex]:focus{outline:3px solid var(--ion);outline-offset:3px}
 body.pad .go:focus{background:#ffd27a;transform:translateX(3px)}
-body.pad,body.pad *{cursor:none!important}
+body.pad,body.pad *,body.flying,body.flying *{cursor:none!important}
 .ship-now,.lvl-step{display:none}
 /* phone title: a compact cockpit; the flight preview stays clear in the middle so you can see your ship */
 @media (max-width:640px), (orientation:landscape) and (max-height:500px){
@@ -5086,7 +5086,13 @@ function setPaused(p) {
   }
 }
 let pauseShown = null;
-function syncPauseBtn() { const on = S.mode === 'play' && !S.paused; if (on !== pauseShown) { pauseShown = on; $('pauseBtn').hidden = !on; } }
+let cursorHidden = false;
+function syncPauseBtn() {
+  const on = S.mode === 'play' && !S.paused; if (on !== pauseShown) { pauseShown = on; $('pauseBtn').hidden = !on; }
+  /* the mouse pointer stays out of sight while flying (it steers without it); it comes back for pause, results and menus */
+  const hide = (S.mode === 'play' || S.mode === 'dying' || S.mode === 'won') && !S.paused;
+  if (hide !== cursorHidden) { cursorHidden = hide; document.body.classList.toggle('flying', hide); }
+}
 /* leave a run from the pause popup: keep any best score earned, then fly the title preview */
 function quitToMenu() {
   if (S.mode !== 'play') return;
