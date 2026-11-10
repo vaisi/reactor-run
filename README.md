@@ -74,12 +74,6 @@ Apple's build tools only run on macOS. Capacitor 8 needs **Xcode 26 or newer**.
 
 To change the icon or launch screen, replace the images in `assets/` (same sizes) and run `npm run assets`.
 
-## Graphics (v2)
-
-The game draws with smoothed edges (4x multisampling) and real-time sun shadows, and sets its own quality: it starts at the top level, and if the frame rate can't hold it first lowers the render size, then turns shadows off, then edge smoothing. After a long smooth stretch it tries the higher level again. The level a phone settled on is remembered for the next launch. There is nothing to configure.
-
-For testing, add `#gfx2` (everything), `#gfx1` (no shadows) or `#gfx0` (the original look) to the web version's address to pin a level.
-
 ## In-app purchases (worlds and ship builder)
 
 The game sells two kinds of things through the `@capgo/native-purchases` plugin (StoreKit on iPhone, Google Play Billing on Android): opening every world at once, and the paid parts in the ship builder. Create these 24 products in **both** stores before testing, with exactly these IDs:

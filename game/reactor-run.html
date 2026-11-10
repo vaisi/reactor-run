@@ -619,14 +619,6 @@ button.link:disabled{color:var(--steel);cursor:default}
   .score{font-size:26px}
   .depth{font-size:10px}
   .ctl-hint{top:calc(84px + env(safe-area-inset-top,0px));bottom:auto}
-  /* the chain multiplier: small, tucked against the top edge (under the gap meter during a core breach) */
-  .combo{top:calc(5px + env(safe-area-inset-top,0px))}
-  .combo b{font-size:22px;text-shadow:0 0 12px rgba(95,226,255,.5)}
-  .combo .lbl{display:block;margin-top:1px;font-size:8px;letter-spacing:.18em}
-  .combo-bar{width:56px;height:2px;margin-top:3px}
-  body.boss-on .combo{top:calc(62px + env(safe-area-inset-top,0px))}
-  /* the gap meter stays clear of the buttons on the right */
-  .front{width:min(230px,calc(100vw - 648px))}
   .builder{grid-template-columns:minmax(0,1fr) min(380px,48vw)!important;grid-template-rows:auto minmax(0,1fr)!important}
   .bd-top{grid-area:1/1}
   .bd-stage{grid-area:2/1}
@@ -889,12 +881,9 @@ const BOSS_FIRST = DEBUG_CORE ? 700 : 4400, BOSS_EVERY = 10000, CHASE_LEN = 4200
 const smooth = t => t * t * (3 - 2 * t);
 
 /* ---------- textures ---------- */
-function canvasTex(w, h, draw, k) {
-  /* k draws the same picture at k times the resolution */
-  k = k || 1;
-  const c = document.createElement('canvas'); c.width = w * k; c.height = h * k;
-  const g2 = c.getContext('2d'); g2.scale(k, k);
-  draw(g2, w, h);
+function canvasTex(w, h, draw) {
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  draw(c.getContext('2d'), w, h);
   const t = new THREE.CanvasTexture(c);
   t.wrapS = t.wrapT = THREE.RepeatWrapping;
   t.anisotropy = renderer.capabilities.getMaxAnisotropy();
@@ -925,11 +914,11 @@ const wallMap = canvasTex(512, 512, (g, w, h) => {
   }
   for (let n = 0; n < 2600; n++) { g.fillStyle = `rgba(0,0,0,${Math.random() * 0.09})`; g.fillRect(Math.random() * w, Math.random() * h, rand(1, 4), rand(1, 4)); }
   wallLights.forEach(l => { g.fillStyle = '#0b0b0c'; g.fillRect(l.x - 2, l.y - 2, l.w + 4, l.h + 4); });
-}, 2);
+});
 const wallEmis = canvasTex(512, 512, (g, w, h) => {
   g.fillStyle = '#000'; g.fillRect(0, 0, w, h);
   wallLights.forEach(l => { g.fillStyle = l.c; g.fillRect(l.x, l.y, l.w, l.h); });
-}, 2);
+});
 wallMap.repeat.set(6, 2); wallEmis.repeat.set(6, 2);
 
 const hazardTex = canvasTex(256, 256, (g, w, h) => {
@@ -937,7 +926,7 @@ const hazardTex = canvasTex(256, 256, (g, w, h) => {
   g.fillStyle = '#7a4f10';
   for (let n = -4; n < 8; n++) { g.beginPath(); g.moveTo(n * 64, h); g.lineTo(n * 64 + 32, h); g.lineTo(n * 64 + 32 + h, 0); g.lineTo(n * 64 + h, 0); g.fill(); }
   for (let n = 0; n < 900; n++) { g.fillStyle = `rgba(0,0,0,${Math.random() * 0.25})`; g.fillRect(Math.random() * w, Math.random() * h, 2, 2); }
-}, 2);
+});
 hazardTex.repeat.set(0.11, 0.11);
 const hazardBox = hazardTex.clone(); hazardBox.repeat.set(2.2, 3.6); hazardBox.needsUpdate = true;
 
@@ -985,8 +974,6 @@ const fanBladeGeo = new THREE.BoxGeometry(1.7, 2 * R + 2, 1.0);
 /* ---------- lights ---------- */
 const hemi = new THREE.HemisphereLight(0x8fa3c0, 0x1a0f08, 0.22); scene.add(hemi);
 const sun = new THREE.DirectionalLight(0xfff0c8, 0); scene.add(sun); scene.add(sun.target);
-/* the sun's light is split in two just before each frame is drawn: `sun` casts shadows, `sunFill` doesn't, so a shadow never goes fully dark */
-const sunFill = new THREE.DirectionalLight(0xfff0c8, 0); scene.add(sunFill); scene.add(sunFill.target);
 const exitLight = new THREE.PointLight(0xe6ffe0, 0, 280, 1); scene.add(exitLight);
 const headLight = new THREE.PointLight(0xffb468, 1.9, 95, 1.6); scene.add(headLight);
 const shipLight = new THREE.PointLight(0x66ddff, 1.6, 26, 1.8); scene.add(shipLight);
@@ -1379,8 +1366,6 @@ const ENVK = { silver: 1, gold: 1, titanium: 0.45, carbon: 0.25, goldcarbon: 0.5
 SPECIALS.forEach(f => { SPECIAL[f.id] = [finish[f.id](false), finish[f.id](true)]; SPECIAL_T[f.id] = finish[f.id](true); [...SPECIAL[f.id], SPECIAL_T[f.id]].forEach(m => { m.userData.env = ENVK[f.id]; }); });
 const ALL_SPECIAL = [...Object.values(SPECIAL).flat(), ...Object.values(SPECIAL_T)], allSpecial = () => ALL_SPECIAL;
 allSpecial().forEach(m => { m.flatShading = true; m.envMap = envTex; m.envMapIntensity = 0.6 * m.userData.env; });
-const SHEEN = [[hullMat, 0.26], [darkHull, 0.3], [canopyMat, 0.7], [wGraph, 0.26], [wWing, 0.24], [kPaint, 0.26], [kWing, 0.24], [kDark, 0.3], [glassMat, 0.75], [nozzleMat, 0.5], [bArmor, 0.28], [bPlate, 0.26], [cMat.p, 0.26], [cMat.p2, 0.24], [cMat.trimB, 0.24], [cMat.glass, 0.75]];
-if (envTex) SHEEN.forEach(([m, k]) => { m.envMap = envTex; m.envMapIntensity = k; });
 /* the lofted hulls carry no UVs, so painted parts get a box projection for the carbon weaves */
 function boxUV(geo, k) {
   const pos = geo.attributes.position, nor = geo.attributes.normal; if (!pos || !nor) return;
@@ -3327,8 +3312,7 @@ const FinalShader = {
         float t = float(i) / 6.0;
         vec2 uv = vUv + haze - c * uBlur * t * d;
         float w = 1.0 - t * 0.55;
-        vec2 a2 = ab * (0.25 + 0.75 * t);
-        acc += vec3(texture2D(tDiffuse, uv + a2).r, texture2D(tDiffuse, uv).g, texture2D(tDiffuse, uv - a2).b) * w;
+        acc += vec3(texture2D(tDiffuse, uv + ab).r, texture2D(tDiffuse, uv).g, texture2D(tDiffuse, uv - ab).b) * w;
         ws += w;
       }
       vec3 col = acc / ws;
@@ -3336,73 +3320,13 @@ const FinalShader = {
       col *= 1.0 - smoothstep(0.32, 0.95, d) * 0.78 * (1.0 - uHeat * 0.45);
       float flick = 0.78 + 0.22 * sin(uTime * 37.0 + d * 24.0 + h(vec2(floor(uTime * 20.0))) * 6.0);
       col += vec3(1.0, 0.4, 0.1) * pow(smoothstep(0.22, 0.82, d), 1.5) * uHeat * 1.3 * flick;
-      col = clamp(col / (1.0 + col * 0.12) * 1.1, 0.0, 1.0);
-      col = mix(vec3(dot(col, vec3(0.299, 0.587, 0.114))), col, 1.07);
-      col = mix(col, col * col * (3.0 - 2.0 * col), 0.12);
-      col += (h(vUv * vec2(1731.0, 977.0) + fract(uTime)) - 0.5) * 0.028;
+      col += (h(vUv * vec2(1731.0, 977.0) + fract(uTime)) - 0.5) * 0.03;
+      col = col / (1.0 + col * 0.12) * 1.1;
       gl_FragColor = vec4(col, 1.0);
     }`
 };
 const finalPass = new THREE.ShaderPass(FinalShader);
-finalPass.needsSwap = false; /* it draws to the screen, so the scene always renders into the same buffer (the one that gets multisampled) */
 composer.addPass(finalPass);
-
-/* ---------- graphics tiers ----------
-   2: smooth edges (4x multisampling) and sun shadows   1: smooth edges only   0: neither (the original look).
-   The game starts at the top tier a device can run and steps down by itself if the frame rate can't hold (see adaptRes). */
-const GFX_HASH = (location.hash.match(/gfx([0-2])/) || [])[1];
-const GFX = { tier: -1, max: renderer.capabilities.isWebGL2 ? 2 : 0, msaa: 0, shadows: false, ups: 0, scanT: 0 };
-const SHADOW_SIZE = Math.min(2048, renderer.capabilities.maxTextureSize >> 1), SHADOW_K = 0.78;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-sun.shadow.mapSize.set(SHADOW_SIZE, SHADOW_SIZE); sun.shadow.bias = -0.0002; sun.shadow.normalBias = 0.22; sun.shadow.radius = 1.6;
-sun.shadow.camera.up.set(0, 0, -1); /* the map's long axis runs down the course */
-function setGfx(t) {
-  t = clamp(t, 0, GFX.max); if (t === GFX.tier) return;
-  GFX.tier = t;
-  const ms = t >= 1 ? Math.min(4, renderer.capabilities.maxSamples || 0) : 0;
-  if (ms !== GFX.msaa) { GFX.msaa = ms; const rt = composer.readBuffer; rt.samples = ms; rt.dispose(); }
-  const sh = t >= 2;
-  if (sh !== GFX.shadows) {
-    GFX.shadows = sh; renderer.shadowMap.enabled = sh; sun.castShadow = sh; renderer.shadowMap.needsUpdate = true;
-    scene.traverse(o => { if (o.isMesh) (Array.isArray(o.material) ? o.material : [o.material]).forEach(m => { if (m && m.isMeshStandardMaterial) m.needsUpdate = true; }); });
-  }
-  try { localStorage.setItem('reactorRunGfx', String(t)); } catch (e) {}
-}
-/* which meshes cast and catch shadows: solid, lit surfaces only (no glows, glass, haze or sky). New scenery is picked up as it appears. */
-const shadowLit = m => m && m.isMeshStandardMaterial && !m.transparent && m.opacity >= 1 && !m.userData.noShadow;
-function shadowScan() {
-  scene.traverse(o => {
-    if (!o.isMesh || o.userData.sh) return; o.userData.sh = 1;
-    const ms = Array.isArray(o.material) ? o.material : [o.material];
-    if (!ms.every(shadowLit)) return;
-    o.receiveShadow = true; o.castShadow = !o.userData.noCast && ms.every(m => m.side !== THREE.BackSide && !m.userData.noCast);
-  });
-}
-/* aim the shadow map at the stretch of course ahead of the ship (or tight on the ship in the builder's showroom), and split the sun */
-const _sd = new THREE.Vector3(), _sr = new THREE.Vector3(), _su = new THREE.Vector3(), _sc0 = new THREE.Vector3(), _sz = new THREE.Vector3(0, 0, -1);
-function aimSun(show) {
-  const tot = sun.intensity, k = GFX.shadows ? (BIOMES[S.lv].env.shK || SHADOW_K) : 0;
-  _sd.copy(sun.position).sub(sun.target.position).normalize();
-  if (GFX.shadows) {
-    const hx = lerp(46, 7, show), hy = lerp(26, 5, show), hz = lerp(170, 7, show);
-    _sc0.set(lerp(0, P.x, show), lerp(6, P.y, show), P.z - lerp(130, 0, show));
-    /* the shadow camera's axes: right and up across the map, _sd back towards the sun */
-    _sr.crossVectors(_sz, _sd).normalize(); _su.crossVectors(_sd, _sr).normalize();
-    const ex = Math.abs(_sr.x) * hx + Math.abs(_sr.y) * hy + Math.abs(_sr.z) * hz, ey = Math.abs(_su.x) * hx + Math.abs(_su.y) * hy + Math.abs(_su.z) * hz, ed = Math.abs(_sd.x) * hx + Math.abs(_sd.y) * hy + Math.abs(_sd.z) * hz;
-    /* move in whole texels so shadow edges don't crawl as the ship flies */
-    const tx = 2 * ex / SHADOW_SIZE, ty = 2 * ey / SHADOW_SIZE, cx = _sc0.dot(_sr), cy = _sc0.dot(_su);
-    _sc0.addScaledVector(_sr, Math.round(cx / tx) * tx - cx).addScaledVector(_su, Math.round(cy / ty) * ty - cy);
-    const c = sun.shadow.camera, back = ed + 260;
-    if (Math.abs(c.right - ex) > 0.01 || Math.abs(c.top - ey) > 0.01 || Math.abs(c.far - (back + ed + 20)) > 0.01) { c.left = -ex; c.right = ex; c.top = ey; c.bottom = -ey; c.near = 1; c.far = back + ed + 20; c.updateProjectionMatrix(); }
-    sun.target.position.copy(_sc0); sun.position.copy(_sc0).addScaledVector(_sd, back);
-    renderer.shadowMap.autoUpdate = tot > 0.01; /* no sun (the shaft, the caves): leave the map alone */
-  }
-  sunFill.position.copy(sun.position); sunFill.target.position.copy(sun.target.position); sunFill.color.copy(sun.color);
-  sun.intensity = tot * k; sunFill.intensity = tot * (1 - k);
-  const lit = clamp(0.3 + 0.5 * hemi.intensity + 0.22 * tot, 0.42, 1.1); for (let i = 0; i < SHEEN.length; i++) SHEEN[i][0].envMapIntensity = SHEEN[i][1] * lit;
-  if (GFX.shadows && --GFX.scanT <= 0) { GFX.scanT = 8; shadowScan(); }
-}
-{ let t0 = GFX.max; try { const v = parseInt(localStorage.getItem('reactorRunGfx'), 10); if (v >= 0 && v <= GFX.max) t0 = v; } catch (e) {} setGfx(GFX_HASH ? +GFX_HASH : t0); }
 
 /* ---------- audio ---------- */
 /* the bass guard's settings (see Sfx.build) */
@@ -4766,9 +4690,9 @@ const BIOMES = [
   { id: 'jungle', name: 'Kessa Basin', tag: 'river run', tip: 'Roll through vines to slice them',  make: makeJungleChunk, chunks: [], jx: JX, gap: 1, len: 9600, d0: 0.35, d1: 0.68,
     env: { fog: C3(0.42, 0.53, 0.4), bg: C3(0.56, 0.68, 0.6), haze: C3(0.86, 0.93, 0.82), dens: 0.0036, hemiI: 1.05, hemiSky: new THREE.Color(0xd2ecff), hemiGnd: new THREE.Color(0x2d4a22), sunI: 1.45, sunCol: C3(1, 0.94, 0.78), sunPos: [30, 80, -70], headI: 0.55, streak: C3(1, 0.97, 0.86), streakA: 0.45, bloom: -0.3, bloomTh: 0.85 } },
   { id: 'stone', name: 'Stonefall Canyon', tag: 'medium intensity', tip: 'Rocks drop from the rim · watch above',  make: makeStoneChunk, chunks: [], jx: 1.3, gap: 1.2, len: 8800, d0: 0.3, d1: 0.52,
-    env: { fog: C3(0.74, 0.55, 0.4), bg: C3(0.86, 0.7, 0.55), haze: C3(0.98, 0.86, 0.68), dens: 0.0031, shK: 0.66, hemiI: 0.58, hemiSky: new THREE.Color(0xffe4c4), hemiGnd: new THREE.Color(0x5a3424), sunI: 0.95, sunCol: C3(1, 0.86, 0.7), sunPos: [40, 80, -50], headI: 0.35, streak: C3(1, 0.9, 0.75), streakA: 0.4, bloom: -0.45, bloomTh: 0.95 } },
+    env: { fog: C3(0.74, 0.55, 0.4), bg: C3(0.86, 0.7, 0.55), haze: C3(0.98, 0.86, 0.68), dens: 0.0031, hemiI: 0.58, hemiSky: new THREE.Color(0xffe4c4), hemiGnd: new THREE.Color(0x5a3424), sunI: 0.95, sunCol: C3(1, 0.86, 0.7), sunPos: [40, 80, -50], headI: 0.35, streak: C3(1, 0.9, 0.75), streakA: 0.4, bloom: -0.45, bloomTh: 0.95 } },
   { id: 'snow', name: 'Frostline Pass', tag: 'whiteout', tip: 'Roll to shatter the ice falls',  make: makeSnowChunk, chunks: [], jx: 1.25, gap: 0.95, len: 10000, d0: 0.48, d1: 0.82,
-    env: { fog: C3(0.63, 0.69, 0.77), bg: C3(0.69, 0.75, 0.83), haze: C3(0.88, 0.92, 0.97), dens: 0.005, hemiI: 0.62, hemiS: 0.5, hemiSky: new THREE.Color(0xeef5ff), hemiGnd: new THREE.Color(0x5a6676), sunI: 0.5, sunS: 0.72, sunCol: C3(1, 1, 1), sunPos: [20, 80, -40], headI: 0.45, streak: C3(1, 1, 1), streakA: 0.6, bloom: -0.5, bloomTh: 0.97 } }
+    env: { fog: C3(0.63, 0.69, 0.77), bg: C3(0.69, 0.75, 0.83), haze: C3(0.88, 0.92, 0.97), dens: 0.005, hemiI: 0.62, hemiSky: new THREE.Color(0xeef5ff), hemiGnd: new THREE.Color(0x5a6676), sunI: 0.5, sunCol: C3(1, 1, 1), sunPos: [20, 80, -40], headI: 0.45, streak: C3(1, 1, 1), streakA: 0.6, bloom: -0.5, bloomTh: 0.97 } }
 ];
 BIOMES.push(
   { id: 'lava', name: 'Ember Rift', tag: 'eruptions', tip: 'Vents glow before they erupt',  make: makeLavaChunk, chunks: [], jx: 1.25, gap: 1.05, len: 9200, d0: 0.45, d1: 0.72,
@@ -4783,8 +4707,6 @@ BIOMES.push(
     env: { fog: C3(0.004, 0.005, 0.012), bg: C3(0.004, 0.005, 0.012), haze: C3(0.05, 0.08, 0.2), dens: 0.0016, hemiI: 0.5, hemiSky: new THREE.Color(0x101830), hemiGnd: new THREE.Color(0x2f5fa8), sunI: 1.8, sunCol: C3(1, 0.97, 0.92), sunPos: [90, 25, -30], headI: 0.5, streak: C3(0.8, 0.85, 1), streakA: 0.25, bloom: 0, bloomTh: 0.85 } }
 );
 const FACADES = [null, facade, canyonPortal, snowPortal, lavaPortal, cavePortal, cityPortal, stormPortal, orbitPortal];
-/* a portal's cliff face stands between the sun and the course: it catches shadows but casts none, so the approach stays sunlit */
-FACADES.forEach(f => { if (f) f.traverse(o => { if (o.isMesh) o.userData.noCast = 1; }); });
 const SHARED_GEO = new Set([waterGeo, P_RAY, carBodyGeo, carGlowGeo]);
 const buildQ = []; /* the next world's chunks are built a couple per frame in the background */
 function queueBuild(i) { if (i > 0 && i < BIOMES.length && BIOMES[i].chunks.length < NCH && !buildQ.includes(i)) buildQ.push(i); }
@@ -5569,14 +5491,12 @@ function applyTint(tn) {
   const T = S.trans, A = BIOMES[S.lv].env, Bn = T && T.from === S.lv ? BIOMES[T.to].env : null, g = Bn ? S.tb : 0;
   scene.fog.color.copy(A.fog); scene.background.copy(A.bg); lineMat.color.copy(A.streak);
   hemi.color.copy(A.hemiSky); hemi.groundColor.copy(A.hemiGnd); sun.color.copy(A.sunCol);
-  /* with shadows on, a world may shift a little light from the sky to the sun (hemiS, sunS) so its shadows read */
-  const eH = e => GFX.shadows && e.hemiS != null ? e.hemiS : e.hemiI, eS = e => GFX.shadows && e.sunS != null ? e.sunS : e.sunI;
-  let hi = eH(A), si = eS(A), sa = A.streakA;
+  let hi = A.hemiI, si = A.sunI, sa = A.streakA;
   if (Bn) {
     const hz = g * (T.kind === 'vent' ? 0.9 : 0.55);
     scene.fog.color.lerp(Bn.haze, hz); scene.background.lerp(Bn.haze, hz); lineMat.color.lerp(Bn.streak, g);
     hemi.color.lerp(Bn.hemiSky, g * 0.5); hemi.groundColor.lerp(Bn.hemiGnd, g * 0.5);
-    hi = lerp(eH(A), eH(Bn), g * 0.5); si = lerp(eS(A), eS(Bn), g * 0.25); sa = lerp(A.streakA, Bn.streakA, g);
+    hi = lerp(A.hemiI, Bn.hemiI, g * 0.5); si = lerp(A.sunI, Bn.sunI, g * 0.25); sa = lerp(A.streakA, Bn.streakA, g);
   }
   scene.fog.density = lerp(A.dens, A.densOut || A.dens, g);
   hemi.intensity = hi; sun.intensity = si; headLight.intensity = A.headI; S.streakA = sa; S.bloomOff = A.bloom;
@@ -5662,23 +5582,15 @@ function updateBoss(dt, realDt, base) {
 
 /* adaptive resolution: frame time is averaged over normal frames (one-off hitches such as a shader compile are skipped);
    below about 51 fps for two seconds the render size steps down, and after a long smooth stretch it steps back up */
-const AR = { ft: 16.7, t: 0, good: 0, bad: 0, calm: 0 };
+const AR = { ft: 16.7, t: 0, good: 0 };
 function setPR(p) { prNow = p; renderer.setPixelRatio(p); renderer.setSize(innerWidth, innerHeight); composer.setPixelRatio(p); composer.setSize(innerWidth, innerHeight); }
 function adaptRes(raw) {
   if (!ADAPT || raw <= 0 || raw > 0.1 || document.hidden) return;
   AR.ft = lerp(AR.ft, raw * 1000, 0.06); AR.t += raw;
   if (AR.t < 2) return; AR.t = 0;
-  /* far too slow: take a bigger step at once */
-  if (AR.ft > 19.6 && prNow > PR_MIN + 0.01) { setPR(Math.max(PR_MIN, Math.round((prNow - (AR.ft > 27 ? 0.3 : 0.15)) * 100) / 100)); AR.good = 0; AR.calm = 0; }
+  if (AR.ft > 19.6 && prNow > PR_MIN + 0.01) { setPR(Math.max(PR_MIN, Math.round((prNow - 0.15) * 100) / 100)); AR.good = 0; }
   else if (AR.ft < 17.4 && prNow < PR_MAX - 0.01) { if (++AR.good >= 5) { setPR(Math.min(PR_MAX, Math.round((prNow + 0.1) * 100) / 100)); AR.good = 0; } }
   else AR.good = 0;
-  /* the render size is as low as it goes and it's still slow: drop shadows, then edge smoothing.
-     After a long smooth stretch at full size, try the next tier up again (twice a session at most). */
-  if (GFX_HASH) return;
-  if (AR.ft > 19.6 && prNow <= PR_MIN + 0.01) { if (++AR.bad >= (AR.ft > 27 ? 1 : 2) && GFX.tier > 0) { setGfx(GFX.tier - 1); AR.bad = 0; AR.calm = 0; AR.ft = 16.7; } }
-  else AR.bad = 0;
-  if (AR.ft < 17.2 && prNow >= PR_MAX - 0.01 && GFX.tier < GFX.max) { if (++AR.calm >= 20 && GFX.ups < 2) { GFX.ups++; setGfx(GFX.tier + 1); AR.calm = 0; AR.ft = 16.7; } }
-  else AR.calm = 0;
 }
 function step() {
   requestAnimationFrame(step);
@@ -5889,8 +5801,8 @@ function step() {
   shipLight.position.set(P.x, P.y, P.z + 3.8 * def.scale); shipLight.intensity = ship.visible ? 1.5 + bAmt * 1.4 : 0;
   headLight.position.set(P.x * 0.4, P.y * 0.4, P.z - 34);
 
-  /* streaks: faint at all times (38% of their old strength), and on boost they snap a little longer, so the rush reads without a wall of bright lines */
-  const len = S.speed * 0.05 + bAmt * 4;
+  /* streaks */
+  const len = S.speed * 0.05 + bAmt * 7;
   for (let i = 0; i < NL; i++) {
     const s = sd[i];
     if (s.z > camera.position.z + 1) respawnStreak(s, P.z - 30);
@@ -5898,7 +5810,7 @@ function step() {
     lpos[o] = s.x; lpos[o + 1] = s.y; lpos[o + 2] = s.z; lpos[o + 3] = s.x; lpos[o + 4] = s.y; lpos[o + 5] = s.z + len;
   }
   lineGeo.attributes.position.needsUpdate = true;
-  lineMat.opacity = clamp((S.speed - 50) / 140, 0.08, 0.75) * S.streakA * 0.38;
+  lineMat.opacity = clamp((S.speed - 50) / 140, 0.08, 0.75) * S.streakA;
 
   /* camera: chase cam that can orbit round to look back down the shaft */
   S.camPull = damp(S.camPull, bAmt * 2.4, 4, realDt);
@@ -5989,7 +5901,6 @@ function step() {
     }
   }
 
-  aimSun(bk);
   composer.render(realDt);
 }
 
